@@ -1,8 +1,8 @@
 import os
 
 import config
-from Station import Stations
-from Environment import Environment
+from preprocessing.Station import Stations
+from preprocessing.Environment import Environment
 
 # from preprocessing.UnprocessedSyntheticData import UnprocessedSyntheticData
 
@@ -74,6 +74,7 @@ def wd(x):
     get x's week day
     :param x: timestamp
     :return: weekday
+
     """
     if not (pd.isnull(x)):
         return datetime.utcfromtimestamp(x).weekday()
@@ -89,7 +90,6 @@ def complete(env, df, s=True):
     :param s: true if trip are considered by station
     :return: the completed dataframe
     """
-    #print(df)
     min_t = int(min(df['UTC timestamp']))
     max_t = int(max(df['UTC timestamp']))
     n_h = (max_t - min_t) // 3600
@@ -99,8 +99,6 @@ def complete(env, df, s=True):
     dfhs[:, 0] = [i for i in range(min_t, max_t, 3600) for _ in range(n_stations)]
     dfhs[:, 1] = np.array(list(stations) * n_h)
     dfhs = pd.DataFrame(dfhs, columns=['UTC timestamp', 'station'])
-    print(dfhs)
-    #df.sort_values(['UTC timestamp', 'station'], inplace=True)
     merged = pd.merge(dfhs, df, 'left', on=['UTC timestamp', 'station'])
     merged.fillna(value=0, inplace=True)
     # merged.iloc[:, 2][merged.iloc[:, 2].isnull()] = 0
@@ -210,21 +208,14 @@ def compute_data_per_hour_per_station(env, save=True, year_stations=False):
         fend = []
         for m in files[y]:
             f3, dstart = data(m, env)
-            #print(dstart['UTC timestamp'])
             dend = dstart.copy()
             dstart['UTC timestamp'] = dstart[config.dep_prefix].apply(f3)
             dend['UTC timestamp'] = dend[config.arr_prefix].apply(f3)
-            #print("dend")
-            #print(np.shape(dend))
-            fstart.append(dstart.groupby(['UTC timestamp', config.start_station_code],as_index=False).count()[[config.dep_prefix]])
-            fend.append(dend.groupby(['UTC timestamp', config.end_station_code], as_index=False).count()[[config.arr_prefix]])
-            #print("fend")
-            #print(fend)
+            fstart.append(dstart.groupby(['UTC timestamp', config.start_station_code]).count()[[config.dep_prefix]])
+            fend.append(dend.groupby(['UTC timestamp', config.end_station_code]).count()[[config.arr_prefix]])
             print(m, fstart[-1][config.dep_prefix].sum(), fend[-1][config.arr_prefix].sum())
         fstart = pd.concat(fstart)
         fend = pd.concat(fend)
-        #print("fend1")
-        #print(fend)
         fstart['UTC timestamp'] = list(map(lambda x: x[0], fstart.index.values))
         fend['UTC timestamp'] = list(map(lambda x: x[0], fend.index.values))
         fstart['station'] = list(map(lambda x: x[1], fstart.index.values))
@@ -235,6 +226,7 @@ def compute_data_per_hour_per_station(env, save=True, year_stations=False):
         g['UTC timestamp'] = list(map(lambda x: x[0], g.index.values))
         g['station'] = list(map(lambda x: x[1], g.index.values))
         fend = g
+        fend.index = fend.index.rename(['UTC index', 'station index'])
         fend = complete(env, fend)
         fstart = complete(env, fstart)
         print(str(y) + ' loaded', fstart.sum(), fend.sum())
