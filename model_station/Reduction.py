@@ -113,7 +113,6 @@ class Reduction(object):
         :return: None
         """
         self.location = loc(self, add_path)
-        print("aqui")
         print(self.location)
         joblib.dump(self, self.location)
         # raise NotImplementedError('save not Implemented')

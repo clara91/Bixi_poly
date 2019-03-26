@@ -61,7 +61,6 @@ class ModelStations(object):
                 type(self.reduce).save(self.reduce,add_path=self.env.system)
         else:
             type(self.reduce).train(self.reduce, learn, **self.hparam['red'])
-            print("oiiiiiiiiii")
             print(self.env.system)
             type(self.reduce).save(self.reduce, add_path=self.env.system)
         x = self.reduce
