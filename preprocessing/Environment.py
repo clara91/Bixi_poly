@@ -138,8 +138,8 @@ class Environment(object):
         nb = ['31', '29', '31', '30', '31', '30', '31', '31', '30', '31', '30', '31']
         files = {
             2015: [],
-            2016: [],
-            2017: []
+            2016: []
+            #2017: []
         }
         for y in list(files.keys()):
             if y % 4 != 0:
@@ -158,6 +158,7 @@ class Environment(object):
                     else:
                         files[y].append(
                             'fre-hourly-' + str(m) + '01' + str(y) + '-' + str(m) + nb[m - 1] + str(y) + '.csv')
+
         return files
 
     def get_cols(self, rename=False):

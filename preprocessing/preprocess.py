@@ -119,7 +119,7 @@ def load(name, env):
     df[li].fillna(method='bfill')
     return df
 
-
+ 
 ##########################################
 ##       preprocess data and save       ##
 ##########################################
@@ -131,7 +131,6 @@ def compute_features(env, save=True):
     :return: the dataframe
     """
     weather_files = env.get_meteo_files()
-
     frames = []
     for y in weather_files.keys():
         for file in weather_files[y]:
@@ -149,7 +148,7 @@ def compute_features(env, save=True):
         r[c] = r[c].apply(lambda x: float(str(x).replace(',', '.')))
     r.loc[r['pression'] == 0, 'pression'] = np.nan
 
-    r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].as_matrix())
+    r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].to_numpy())
     ##########################################
     ##       compute time features          ##
     ##########################################
@@ -189,6 +188,9 @@ def compute_features(env, save=True):
     r['MMJ'] = (r['wday'] == 1) | (r['wday'] == 2) | (r['wday'] == 3)
     r['SD'] = (r['wday'] == 5) | (r['wday'] == 6)
     if save:
+        #print("########################################33aqui")
+        #print(env.pre_per_hour_path)
+
         r.to_pickle(env.pre_per_hour_path)
     return r
 
@@ -285,8 +287,8 @@ def combine_merged_s(env, save=True, precipitation=None, tripdeparture=None, tri
     df = df.reset_index()
     k = (merged['station'] == stations[0]).sum()
     merged.sort_values(by=['station', 'UTC timestamp'], inplace=True)
-    startdate = merged[config.dep_prefix].as_matrix().reshape((int(merged.shape[0] / k), k)).T
-    enddate = merged[config.arr_prefix].as_matrix().reshape((int(merged.shape[0] / k), k)).T
+    startdate = merged[config.dep_prefix].to_numpy().reshape((int(merged.shape[0] / k), k)).T
+    enddate = merged[config.arr_prefix].to_numpy().reshape((int(merged.shape[0] / k), k)).T
     startcol = list(map(lambda x: config.dep_prefix + ' ' + str(x), stations))
     endcol = list(map(lambda x: config.arr_prefix + ' ' + str(x), stations))
     start = pd.DataFrame(startdate, columns=startcol)
@@ -303,7 +305,7 @@ def combine_merged_s(env, save=True, precipitation=None, tripdeparture=None, tri
         c_station.append(config.dep_prefix + ' ' + str(s))
         c_station.append(config.arr_prefix + ' ' + str(s))
 
-    df['total']=df[c_station].as_matrix().sum(axis=1)
+    df['total']=df[c_station].to_numpy().sum(axis=1)
 
     c = [i for i in df.columns.values if not config.station_prefix in i]
     c+=c_station
@@ -330,7 +332,7 @@ def combine_lost_satisfied_demand(env, comb=True, save=True, station_df=None):
         df_s = station_df
     if comb:
         df_l = env.load(env.station_df_lost_path)
-        df_s[df_l.columns] = df_s[df_l.columns].as_matrix() + df_l.as_matrix()
+        df_s[df_l.columns] = df_s[df_l.columns].to_numpy() + df_l.to_numpy()
     if save:
         pd.to_pickle(df_s, env.station_df_path)
     return df_s
@@ -376,8 +378,8 @@ def get_features(env):
         r[c] = r[c].apply(lambda x: float(str(x).replace(',', '.')))
     r.loc[r['pression'] == 0, 'pression'] = np.nan
 
-    # r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].as_matrix())
-    r['pression'].fillna(np.nanmean(r['pression'].as_matrix()),inplace=True)
+    # r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].to_numpy())
+    r['pression'].fillna(np.nanmean(r['pression'].to_numpy()),inplace=True)
     r['pression'].fillna(100,inplace=True)
     # if r['pression'].isnull().sum() != 0:
     #     r['pression'][r['pression'].isnull()] = 100
@@ -436,15 +438,14 @@ def recompute_all_files(system, name, save=True):
         compute_data_per_hour_per_station(env)
         # print('merge station')
         combine_merged_s(env)
-        return combine_lost_satisfied_demand(env,
-                                             False)
+        return combine_lost_satisfied_demand(env,comb=False)
     else:
         env = Environment(system, name)
-        precip = compute_features(env, save=False)
+        precip = compute_features(env, save=True)
         print('data per station')
-        dep, arr = compute_data_per_hour_per_station(env, save=False)
+        dep, arr = compute_data_per_hour_per_station(env, save=True)
         print('merge station')
-        merged = combine_merged_s(env, save=False, precipitation=precip, tripdeparture=dep,
+        merged = combine_merged_s(env, save=True, precipitation=precip, tripdeparture=dep,
                                   triparrivals=arr)
         return merged
 

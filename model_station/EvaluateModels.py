@@ -9,7 +9,7 @@ import seaborn as sns
 import tensorflow as tf
 import sys
 #print(sys.path)
-sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre_Code/code')
+sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
 
 from utils.modelUtils import normalize
 from config import root_path

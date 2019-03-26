@@ -20,24 +20,24 @@ class Stations(object):
             return self.s.shape[0]
 
     def get_since(self):
-        res = self.s['since'].as_matrix().flatten()
+        res = self.s['since'].to_numpy().flatten()
         res = res.astype(int)
         return res
 
     def get_ids(self):
         if self.since is None:
-            res = self.s['code'].as_matrix().flatten()
+            res = self.s['code'].to_numpy().flatten()
         else:
             # print(self.)
-            res = self.s['code'][self.s['since'] == self.since].as_matrix().flatten()
+            res = self.s['code'][self.s['since'] == self.since].to_numpy().flatten()
         res = res.astype(int)
         return res
 
     def get_pks(self):
         if self.since is None:
-            return self.s['pk'].as_matrix().flatten()
+            return self.s['pk'].to_numpy().flatten()
         else:
-            return self.s['pk'][self.s['since'] == self.since].as_matrix().flatten()
+            return self.s['pk'][self.s['since'] == self.since].to_numpy().flatten()
 
     def get_id_from_pk(self, pk):
         # if self.pk_to_id is None:
