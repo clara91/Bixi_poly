@@ -99,7 +99,7 @@ class Stations(object):
 if __name__ == '__main__':
     from preprocessing.Environment import Environment
 
-    env = Environment('capitalBS', 'train')
+    env = Environment('Bixi', 'train')
     s = Stations(env, None)
     s.get_id_from_pk(456)
     print(str(s.get_ids()))
