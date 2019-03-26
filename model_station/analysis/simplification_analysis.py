@@ -13,22 +13,22 @@ def SVD_analysis(data):
     """
     s = Reduction(data.env,hours=[])
     svd = TruncatedSVD(len(s.preselect) - 1)
-    svd.fit(data.get_miniOD([],log=True)[s.preselect].as_matrix())
+    svd.fit(data.get_miniOD([],log=True)[s.preselect].to_numpy())
     t = np.zeros(svd.explained_variance_ratio_.shape[0] + 1)
     t[1:] = svd.explained_variance_ratio_
     plt.plot(np.cumsum(t))
     print((svd.explained_variance_ratio_))
     plt.show()
     svd = TruncatedSVD(50)
-    svd.fit(data.get_miniOD([],log=True)[s.preselect].as_matrix())
+    svd.fit(data.get_miniOD([],log=True)[s.preselect].to_numpy())
     plt.plot(svd.explained_variance_ratio_)
     plt.show()
 
 
 def SVD_generalisation_test(data):
     s = Reduction(data.env)
-    train = data.get_partialdata_per(0, 0.8).get_miniOD([], log=False)[s.preselect].as_matrix()
-    test = data.get_partialdata_per(0.8, 1).get_miniOD([], log=False)[s.preselect].as_matrix()
+    train = data.get_partialdata_per(0, 0.8).get_miniOD([], log=False)[s.preselect].to_numpy()
+    test = data.get_partialdata_per(0.8, 1).get_miniOD([], log=False)[s.preselect].to_numpy()
     err=[]
     for i in range(1,1000):
         svd = TruncatedSVD(i)
@@ -45,7 +45,7 @@ def SVD_generalisation_test(data):
 def hierarchy_analysis(data):
     m = 'weighted'
     s = Reduction(data.env)
-    learn = data.get_synthetic_miniOD([],False)[s.preselect].as_matrix()
+    learn = data.get_synthetic_miniOD([],False)[s.preselect].to_numpy()
     norm = learn.sum(axis=0)
     l = np.zeros((learn.shape[0] + 1, learn.shape[1]))
     l[0, :] = norm
@@ -68,7 +68,7 @@ def plot_clusters(data, labels, title=''):
     data = data.get_partialdata_per(0, 0.5)
     nl = len(np.unique(labels))
     s = Reduction(data.env)
-    d = data.get_synthetic_miniOD([],False)[s.preselect].as_matrix()
+    d = data.get_synthetic_miniOD([],False)[s.preselect].to_numpy()
     t = np.zeros((d.shape[0], nl))
     r = np.zeros((24*7, nl))
     for l in range(nl):
@@ -94,7 +94,7 @@ def plot_clusters(data, labels, title=''):
 def SVD_plot_dim(data):
     s = Reduction(data.env)
     svd = TruncatedSVD(8)
-    t = svd.fit_transform(data.get_miniOD([])[s.preselect].as_matrix())
+    t = svd.fit_transform(data.get_miniOD([])[s.preselect].to_numpy())
     t = t[:100*24,:]
     r = np.zeros((24*7, 8))
     translate = 24*3
@@ -121,7 +121,7 @@ def redution_plot_dim(data, red, dim=10):
     s = get_reduction(red)(data.env, dim=dim)
     s.train(data=data)
     t = s.transform(data)
-    # t = svd.fit_transform(data.get_miniOD()[s.preselect].as_matrix())
+    # t = svd.fit_transform(data.get_miniOD()[s.preselect].to_numpy())
     r = np.zeros((24, t.shape[1]))
     for h in range(24):
         r[h, :] = t[range(h, t.shape[0], 24), :].mean(axis=0)
@@ -144,11 +144,11 @@ def PCA_analysis(data):
     """
     s = Reduction(data.env,hours=[])
     svd = PCA(len(s.preselect) - 1)
-    svd.fit(data.get_miniOD([])[s.preselect].as_matrix())
+    svd.fit(data.get_miniOD([])[s.preselect].to_numpy())
     plt.plot(svd.explained_variance_ratio_)
     plt.show()
     svd = PCA(50)
-    svd.fit(data.get_miniOD([])[s.preselect].as_matrix())
+    svd.fit(data.get_miniOD([])[s.preselect].to_numpy())
     plt.plot(svd.explained_variance_ratio_)
     plt.show()
 
@@ -164,7 +164,7 @@ def kmeans_analysis(data):
     for k in range(500):
         print(k)
         kmeans = KMeans(k + 1)
-        kmeans.fit(data.get_miniOD([])[s.preselect].as_matrix())
+        kmeans.fit(data.get_miniOD([])[s.preselect].to_numpy())
         l.append(kmeans.inertia_)
         if k % 10 == 0:
             plt.plot(l)
@@ -186,12 +186,12 @@ def kmeans_svd_analysis(data):
         print(k+1)
         kmeans.train(data)
         r = kmeans.inv_transform(kmeans.transform(data))
-        err = ((data.get_miniOD([])[s.preselect].as_matrix()-r)**2).mean()
+        err = ((data.get_miniOD([])[s.preselect].to_numpy()-r)**2).mean()
         l_km.append(err)
         svd = SVD(data.env,dim=k+1)
         svd.train(data)
         r = svd.inv_transform(svd.transform(data))
-        err = ((data.get_miniOD([])[s.preselect].as_matrix()-r)**2).mean()
+        err = ((data.get_miniOD([])[s.preselect].to_numpy()-r)**2).mean()
         l_svd.append(err)
 
         if k==30:
@@ -208,7 +208,7 @@ def kmeans_svd_analysis(data):
 def kmeans_print_clusters(data):
     s = Reduction(data.env)
     kmeans = KMeans(10)
-    kmeans.fit(data.get_miniOD([])[s.preselect].as_matrix().T)
+    kmeans.fit(data.get_miniOD([])[s.preselect].to_numpy().T)
     print(kmeans.labels_.shape)
     plot_clusters(data, kmeans.labels_ - 1)
 
@@ -217,7 +217,7 @@ def autoencoder_analysis(data):
     s = Reduction(data.env)
     train = data.get_partialdata_per(0, 0.8)
     test = data.get_partialdata_per(0.8, 1)
-    M = (s.get_y(train.get_miniOD([])).as_matrix() ** 2).sum()
+    M = (s.get_y(train.get_miniOD([])).to_numpy() ** 2).sum()
     print(M)
     param = {
         'std_noise': 0.2,
@@ -243,7 +243,7 @@ def autoencoder_analysis(data):
     auto.train(train, **param)
     auto.save(add_path=data.env.system)
     x = auto.inv_transform(auto.transform(test))
-    err= ((x - s.get_y(test.get_miniOD([]))) ** 2).as_matrix().sum()
+    err= ((x - s.get_y(test.get_miniOD([]))) ** 2).to_numpy().sum()
     print(err)
     print((M-err)/M)
 
@@ -274,7 +274,7 @@ def compute_info_loss(data):
 
     # test = data.get_partialdata_per(0.8,1)
     s = Reduction(train.env)
-    D = s.get_y(train.get_miniOD([])).as_matrix()
+    D = s.get_y(train.get_miniOD([])).to_numpy()
     M =((D-D.mean()) ** 2).mean()
     errr = {}
     nnn = algorithms.keys()
@@ -297,7 +297,7 @@ def compute_info_loss(data):
         x = type(red).inv_transform(red,type(red).transform(red,test))
         if n=='kmeans':
             print(n, x.shape)
-        err = ((x - s.get_y(test.get_miniOD([]))) ** 2).as_matrix().mean()
+        err = ((x - s.get_y(test.get_miniOD([]))) ** 2).to_numpy().mean()
         errr[n] = err
     print(M)
     for n in nnn:

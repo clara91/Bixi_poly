@@ -310,7 +310,7 @@ def vote_for_pred(test_data, comb=False):
         eM.load_or_train(train)
         pp = eM.mod.predict(test)
         err = (pp - test.get_miniOD([])[test.get_stations_col(None)])[test.get_stations_col(2015)] ** 2
-        err = err.as_matrix()
+        err = err.to_numpy()
         err = err.mean(axis=0)
 
         votes_2[best_err > err] = votes[best_err > err]
@@ -332,7 +332,7 @@ def vote_for_pred(test_data, comb=False):
                 # eM.load_or_train(train)
                 pp = eM.mod.predict(test)
                 err = (pp - test.get_miniOD([])[test.get_stations_col(None)])[test.get_stations_col(2015)] ** 2
-                err = err.as_matrix()
+                err = err.to_numpy()
                 err = err.mean(axis=0)
 
                 votes_2[best_err > err] = votes[best_err > err]

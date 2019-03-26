@@ -49,9 +49,9 @@ class Prediction(object):
     # y1: pandas df or numpy array
     def evaluate(self, x, y=None):
         if isinstance(y, DataFrame):
-            y1 = y.as_matrix()
+            y1 = y.to_numpy()
         elif isinstance(y, Series):
-            y1 = y.as_matrix()
+            y1 = y.to_numpy()
         pred = self.predict(x, y1)
         return [rmse(pred, y1), rmse(np.exp(pred) - 1, np.exp(y1) - 1)]
 
@@ -103,7 +103,7 @@ class MeanPredictor(Prediction):
         if self.dim > 1:
             for d in range(self.dim):
                 if isinstance(y, DataFrame):
-                    y1 = y.as_matrix()[:, d]
+                    y1 = y.to_numpy()[:, d]
                 else:
                     y1 = y[:, d]
                 # learn = range(int(y1.shape[0] * 1))  # 0.8))
@@ -150,7 +150,7 @@ class MeanHourPredictor(Prediction):
         if self.dim > 1:
             for d in range(self.dim):
                 if isinstance(y, DataFrame):
-                    y1 = y.as_matrix()[:, d]
+                    y1 = y.to_numpy()[:, d]
                 else:
                     y1 = y[:, d]
                 m = np.zeros(24)
@@ -189,7 +189,7 @@ class ARIMAPredictor(Prediction):
         pred = np.zeros(shape=(self.dim, x.shape[0]))
         for d in range(self.dim):
             if isinstance(x,pd.DataFrame):
-                x= x.as_matrix()
+                x= x.to_numpy()
             pred[d] = self.models[d].predict(exog=x)
         return pred.transpose()
 
@@ -212,21 +212,21 @@ class ARIMAPredictor(Prediction):
         # sys.stdout.flush()
         if isinstance(y, DataFrame):
             if len(y.shape) == 1:
-                y1 = y.as_matrix()
+                y1 = y.to_numpy()
             else:
                 # print(obj.shape)
-                y1 = y.as_matrix()[:, d]
+                y1 = y.to_numpy()[:, d]
         elif isinstance(y, Series):
             if len(y.shape) == 1:
-                y1 = y.as_matrix()
+                y1 = y.to_numpy()
             else:
-                y1 = y[:, d].as_matrix()
+                y1 = y[:, d].to_numpy()
         else:
             if len(y.shape) == 1:
                 y1 = y
             else:
                 y1 = y[:, d]
-        mod = ARIMA(endog=y1, order=hparam['order'])# ,exog=x.as_matrix())
+        mod = ARIMA(endog=y1, order=hparam['order'])# ,exog=x.to_numpy())
         ## MODEL 1  ##
         mod.fit()
         return mod
@@ -258,10 +258,10 @@ class LinearPredictor(Prediction):
         self.lr = LinearRegression(n_jobs=-1)
 
     def predict(self, x, y=None):
-        return self.lr.predict(x.as_matrix())
+        return self.lr.predict(x.to_numpy())
 
     def train(self, x, y, **kwargs):
-        self.lr.fit(x.as_matrix(), y)
+        self.lr.fit(x.to_numpy(), y)
         # print(self.lr.get_params())
 
     def save(self, add_path=''):
@@ -295,10 +295,10 @@ class RidgePredictor(Prediction):
         self.lr = Ridge(alpha=hparam['alpha'])
 
     def predict(self, x, y=None):
-        return self.lr.predict(X=x.as_matrix())
+        return self.lr.predict(X=x.to_numpy())
 
     def train(self, x, y, **kwargs):
-        self.lr.fit(x.as_matrix(), y)
+        self.lr.fit(x.to_numpy(), y)
 
     def save(self, add_path=''):
         self.location = loc(self, add_path)
@@ -331,10 +331,10 @@ class LassoPredictor(Prediction):
         self.lr = Lasso(alpha=hparam['alpha'])
 
     def predict(self, x, y=None):
-        return self.lr.predict(x.as_matrix())
+        return self.lr.predict(x.to_numpy())
 
     def train(self, x, y, **kwargs):
-        self.lr.fit(x.as_matrix(), y)
+        self.lr.fit(x.to_numpy(), y)
 
     def save(self, add_path=''):
         self.location = loc(self, add_path)
@@ -373,16 +373,16 @@ class SvrLinear(Prediction):
     def predict(self, x, y=None):
         pred = np.zeros(shape=(self.dim, x.shape[0]))
         for d in range(self.dim):
-            pred[d] = self.svr[d].predict(x.as_matrix())
+            pred[d] = self.svr[d].predict(x.to_numpy())
         return pred.transpose()
 
     def train(self, x, y, **kwargs):
         for d in range(self.dim):
             if isinstance(y, DataFrame):
-                y1 = y[:, d].as_matrix()
+                y1 = y[:, d].to_numpy()
             else:
                 y1 = y[:, d]
-            self.svr[d].fit(x.as_matrix(), y1)
+            self.svr[d].fit(x.to_numpy(), y1)
 
     def save(self, add_path=''):
         self.location = loc(self, add_path)
@@ -450,8 +450,8 @@ class TripleGbt(Prediction):
     def predict(self, x, y=None):
         pred = np.zeros(shape=(self.dim, x.shape[0]))
         for d in range(self.dim):
-            pred[d] = self.model_GBT1[d].predict(x.as_matrix())
-            pred[d] += self.model_GBT2[d].predict(x.as_matrix())
+            pred[d] = self.model_GBT1[d].predict(x.to_numpy())
+            pred[d] += self.model_GBT2[d].predict(x.to_numpy())
             x['pred_GBT'] = pred[d]
             x['err'] = y[:, d] - pred[d]
             input3 = self.transform_data_2D(x)
@@ -472,7 +472,7 @@ class TripleGbt(Prediction):
         err, = np.where(data.columns.values == 'err')
         for k in range(l):
             a = data.shape[0] - prev[k]
-            x[prev[k]:, k * data.shape[1]:(k + 1) * data.shape[1]] = data.as_matrix()[0:a, :]
+            x[prev[k]:, k * data.shape[1]:(k + 1) * data.shape[1]] = data.to_numpy()[0:a, :]
             if prev[k] < self.horizon:
                 x[:, k * data.shape[1] + err] = 0
         return x
@@ -481,14 +481,14 @@ class TripleGbt(Prediction):
         for d in range(self.dim):
             if isinstance(y, DataFrame):
                 if len(y.shape) == 1:
-                    y1 = y.as_matrix()
+                    y1 = y.to_numpy()
                 else:
-                    y1 = y[:, d].as_matrix()
+                    y1 = y[:, d].to_numpy()
             elif isinstance(y, Series):
                 if len(y.shape) == 1:
-                    y1 = y.as_matrix()
+                    y1 = y.to_numpy()
                 else:
-                    y1 = y[:, d].as_matrix()
+                    y1 = y[:, d].to_numpy()
             else:
                 if len(y.shape) == 1:
                     y1 = y
@@ -509,20 +509,20 @@ class TripleGbt(Prediction):
             ## MODEL 1  ##
 
             self.model_GBT1[d].fit(
-                x.as_matrix()[learn],
+                x.to_numpy()[learn],
                 y1[learn]
                 # np.log(y1[learn] + 1)
             )
-            pred = self.model_GBT1[d].predict(x.as_matrix())
+            pred = self.model_GBT1[d].predict(x.to_numpy())
             # print_perso(pred)
 
             ##  MODEL 2  ##
             self.model_GBT2[d].fit(
-                x.as_matrix()[learn],
+                x.to_numpy()[learn],
                 y1[learn] - pred[learn]
                 # np.log(y1[learn] + 1) - pred[learn]
             )
-            pred += self.model_GBT2[d].predict(x.as_matrix())
+            pred += self.model_GBT2[d].predict(x.to_numpy())
             # print_perso(pred)
             x.loc[:, 'pred_GBT'] = pred
             x.loc[:, 'err'] = y1 - pred
@@ -592,22 +592,22 @@ class DoubleGbt(Prediction):
     def predict(self, x, y=None):
         pred = np.zeros(shape=(self.dim, x.shape[0]))
         for d in range(self.dim):
-            pred[d] = self.model_GBT1[d].predict(x.as_matrix())
-            pred[d] += self.model_GBT2[d].predict(x.as_matrix())
+            pred[d] = self.model_GBT1[d].predict(x.to_numpy())
+            pred[d] += self.model_GBT2[d].predict(x.to_numpy())
         return pred.transpose()
 
     def train(self, x, y, verb=0, **kwargs):
         for d in range(self.dim):
             if isinstance(y, DataFrame):
                 if len(y.shape) == 1:
-                    y1 = y.as_matrix()
+                    y1 = y.to_numpy()
                 else:
-                    y1 = y[:, d].as_matrix()
+                    y1 = y[:, d].to_numpy()
             elif isinstance(y, Series):
                 if len(y.shape) == 1:
-                    y1 = y.as_matrix()
+                    y1 = y.to_numpy()
                 else:
-                    y1 = y[:, d].as_matrix()
+                    y1 = y[:, d].to_numpy()
             else:
                 if len(y.shape) == 1:
                     y1 = y
@@ -625,20 +625,20 @@ class DoubleGbt(Prediction):
             ## MODEL 1  ##
 
             self.model_GBT1[d].fit(
-                x.as_matrix()[learn],
+                x.to_numpy()[learn],
                 y1[learn]
                 # np.log(y1[learn] + 1)
             )
-            pred = self.model_GBT1[d].predict(x.as_matrix())
+            pred = self.model_GBT1[d].predict(x.to_numpy())
             # print_perso(pred)
 
             ##  MODEL 2  ##
             self.model_GBT2[d].fit(
-                x.as_matrix()[learn],
+                x.to_numpy()[learn],
                 y1[learn] - pred[learn]
                 # np.log(y1[learn] + 1) - pred[learn]
             )
-            pred += self.model_GBT2[d].predict(x.as_matrix())
+            pred += self.model_GBT2[d].predict(x.to_numpy())
             # print_perso(pred)
 
     def save(self, add_path=''):
@@ -686,7 +686,7 @@ class SimpleGbt(Prediction):
         pred = np.zeros(shape=(self.dim, x.shape[0]))
         for d in range(self.dim):
             if isinstance(x,pd.DataFrame):
-                x= x.as_matrix()
+                x= x.to_numpy()
             pred[d] = self.model_GBT1[d].predict(x)
         return pred.transpose()
 
@@ -707,15 +707,15 @@ class SimpleGbt(Prediction):
         # sys.stdout.flush()
         if isinstance(y, DataFrame):
             if len(y.shape) == 1:
-                y1 = y.as_matrix()
+                y1 = y.to_numpy()
             else:
                 # print(obj.shape)
-                y1 = y.as_matrix()[:, d]
+                y1 = y.to_numpy()[:, d]
         elif isinstance(y, Series):
             if len(y.shape) == 1:
-                y1 = y.as_matrix()
+                y1 = y.to_numpy()
             else:
-                y1 = y[:, d].as_matrix()
+                y1 = y[:, d].to_numpy()
         else:
             if len(y.shape) == 1:
                 y1 = y
@@ -725,7 +725,7 @@ class SimpleGbt(Prediction):
                     learning_rate=hparam['lr'], max_depth=hparam['max_depth'])
         ## MODEL 1  ##
         gbt.fit(
-            x.as_matrix(),
+            x.to_numpy(),
             y1
         )
         return gbt
@@ -789,7 +789,7 @@ class MLP(Prediction):
         hparams.update(kwargs)
         for ch in x.columns.values:
             x[ch] = x[ch].astype('float64')
-        x = x.as_matrix()
+        x = x.to_numpy()
         lr = Ridge(alpha=0.2).fit(x, y)
         # validx = kwargs['validx']
         # validy = kwargs['validy']
@@ -831,7 +831,7 @@ class MLP(Prediction):
                        batch_size=hparams['batch_size'],
                        verbose=hparams['verb'],
                        shuffle=True,
-                       # validation_data=(validx.as_matrix(), validy),
+                       # validation_data=(validx.to_numpy(), validy),
                        callbacks=[lrred],
                        validation_split=0.2
                        )
@@ -841,7 +841,7 @@ class MLP(Prediction):
     ####################################
     def predict(self, x, y=None):
         if isinstance(x, DataFrame):
-            x = x.as_matrix()
+            x = x.to_numpy()
             x = x.astype('float64')
         # print(x.dtype)
         return self.model.predict(x)
@@ -905,10 +905,10 @@ class MLP_var(MLP):
             y.reset_index(inplace=True, drop=True)
             for ch in y.columns.values:
                 y[ch] = y[ch].astype('float64')
-            y = y.as_matrix()
+            y = y.to_numpy()
         for ch in x.columns.values:
             x[ch] = x[ch].astype('float64')
-        x = x.as_matrix()
+        x = x.to_numpy()
         # lr = Ridge(alpha=0.2).fit(x, y)
         # validx = kwargs['validx']
         # validy = kwargs['validy']
@@ -947,7 +947,7 @@ class MLP_var(MLP):
                            batch_size=hparams['batch_size'],
                            verbose=hparams['verb'],
                            shuffle=True,
-                           # validation_data=(validx.as_matrix(), validy),
+                           # validation_data=(validx.to_numpy(), validy),
                            callbacks=[lrred],
                            validation_split=0.2
                            )
@@ -957,7 +957,7 @@ class MLP_var(MLP):
     ####################################
     # def predict(self, x, y=None):
     #     if isinstance(x, DataFrame):
-    #         x = x.as_matrix()
+    #         x = x.to_numpy()
     #         x = x.astype('float64')
     #     # print(x.dtype)
     #     return self.model.predict(x)
@@ -1012,8 +1012,8 @@ class MLP2(MLP):
         from keras.models import Model
         for ch in x.columns.values:
             x[ch] = x[ch].astype('float64')
-        x = x.as_matrix()
-        # validx = kwargs['validx'].as_matrix()
+        x = x.to_numpy()
+        # validx = kwargs['validx'].to_numpy()
         # validy = kwargs['validy']
         dim = x.shape[1]
         n_out = self.dim
@@ -1070,7 +1070,7 @@ class MLP2(MLP):
     ####################################
     # def predict(self, x, y=None):
     #     if isinstance(x, DataFrame):
-    #         x = x.as_matrix()
+    #         x = x.to_numpy()
     #         x = x.astype('float64')
     #     # print(x.dtype)
     #     return self.model.predict(x)
@@ -1126,8 +1126,8 @@ class MLP_kaggle(Prediction):
         from keras.models import Model
         for ch in x.columns.values:
             x[ch] = x[ch].astype('float64')
-        x = x.as_matrix()
-        # validx = kwargs['validx'].as_matrix()
+        x = x.to_numpy()
+        # validx = kwargs['validx'].to_numpy()
         # validy = kwargs['validy']
         dim = x.shape[1]
         n_out = self.dim
@@ -1184,7 +1184,7 @@ class MLP_kaggle(Prediction):
     ####################################
     def predict(self, x, y=None):
         if isinstance(x, DataFrame):
-            x = x.as_matrix()
+            x = x.to_numpy()
             x = x.astype('float64')
         # print(x.dtype)
         return self.model.predict(x)
@@ -1255,10 +1255,10 @@ class LSTMPredictor(Prediction):
 
         for ch in x.columns.values:
             x[ch] = x[ch].astype('float64')
-        x = x.as_matrix()
+        x = x.to_numpy()
         x = self.transform_x(x, self.hparams['window'])
         y1 = self.transform_x(y, self.hparams['window'])
-        validx = self.transform_x(kwargs['validx'].as_matrix(), self.hparams['window'])
+        validx = self.transform_x(kwargs['validx'].to_numpy(), self.hparams['window'])
         validy = self.transform_x(kwargs['validy'], self.hparams['window'])
         # validy = kwargs['validy']
         dim = x.shape[2]
@@ -1312,7 +1312,7 @@ class LSTMPredictor(Prediction):
     ####################################
     def predict(self, x, y=None):
         if isinstance(x, DataFrame):
-            x = x.as_matrix()
+            x = x.to_numpy()
             x = x.astype('float64')
         # print(x.dtype)
         x = self.transform_x(x, self.hparams['window'])
@@ -1352,7 +1352,7 @@ class RandForest(Prediction):
         hparam = {}
         hparam.update(self.hparam)
         hparam.update(**kwargs)
-        self.RF.fit(x.as_matrix(), y)
+        self.RF.fit(x.to_numpy(), y)
 
     # predict the objectives
     def predict(self, x, y=None):
@@ -1390,7 +1390,7 @@ class DecisionTree(Prediction):
 
     # train the prediction model
     def train(self, x, y, **kwargs):
-        self.DT.fit(x.as_matrix(), y)
+        self.DT.fit(x.to_numpy(), y)
 
     # predict the objectives
     def predict(self, x, y=None):

@@ -28,8 +28,8 @@ class EvaluatesModels(object):
             'norm': False,              #normalize objectives
             'load': True,               #load model
             'hours': [],                #hours to consider as features
-            'var':False,                #learn a variance predictor
-            'zero_prob':False,          #learn a predictor that estimate the 0 probability
+            'var': False,                #learn a variance predictor
+            'zero_prob': False,          #learn a predictor that estimate the 0 probability
             'log': False,               #log transform the objectives
             'mean': False,              #
             'red': {},                  #reduction hparam
@@ -147,7 +147,7 @@ class EvaluatesModels(object):
             # print(self.compute_err(test_data, ['rmse','r2'], station=s))
             plt.clf()
             # plt.subplot(2,1,1)
-            y = self.models[0].mod.get_y(test_data.get_miniOD(self.models[0].hparam['hours'])).as_matrix()
+            y = self.models[0].mod.get_y(test_data.get_miniOD(self.models[0].hparam['hours'])).to_numpy()
             plt.plot(y[300:600, s], label='real demand')
             plt.title(test_data.get_stations_col()[s])
             for mod in self.models:
@@ -156,7 +156,7 @@ class EvaluatesModels(object):
             plt.xlabel('Time (hours)')
             plt.ylabel('Number of trips')
             # plt.subplot(2,1,2)
-            # y = self.models[0].mod.get_y(train_data.get_miniOD(self.models[0].hparam['hours'])).as_matrix()
+            # y = self.models[0].mod.get_y(train_data.get_miniOD(self.models[0].hparam['hours'])).to_numpy()
             # plt.plot(y[:, s], label='real demand')
             # plt.title(train_data.get_stations_col()[s])
             # for mod in self.models:
@@ -186,7 +186,7 @@ def RMSE_vs_time(test_data, mods):
     residuals = mods.compute_residuals(test_data)
     w = 24
     for i in range(len(residuals)):
-        res = (residuals[i][test_data.get_stations_col(2015)].as_matrix() ** 2).mean(axis=1)
+        res = (residuals[i][test_data.get_stations_col(2015)].to_numpy() ** 2).mean(axis=1)
         m = np.zeros(res.shape[0] - w)
         for h in range(w):
             m += res[h:-w + h]
@@ -210,7 +210,7 @@ def err_vs_time(test_data, mods: EvaluatesModels, err=['rmse'], station=None):
         scores = scores.reshape((scores.shape[0], scores.shape[2]))
         w = 24
         for i in range(scores.shape[0]):
-            res = scores[i]  # [test_data.get_stations_col(2015)].as_matrix() ** 2).mean(axis=1)
+            res = scores[i]  # [test_data.get_stations_col(2015)].to_numpy() ** 2).mean(axis=1)
             m = np.zeros(res.shape[0] - w)
             for h in range(w):
                 m += res[h:-w + h]
@@ -232,7 +232,7 @@ def RMSE_norm_vs_time(test_data, mods):
     residuals = mods.compute_normed_residuals(test_data)
     w = 24
     for i in range(len(residuals)):
-        res = (residuals[i][test_data.get_stations_col(2015)].as_matrix() ** 2).mean(axis=1)
+        res = (residuals[i][test_data.get_stations_col(2015)].to_numpy() ** 2).mean(axis=1)
         m = np.zeros(res.shape[0] - w)
         for h in range(w):
             m += res[h:-w + h]
@@ -252,13 +252,13 @@ def plot_residuals(test_data, mods):
     for i in range(len(mods.residuals)):
         residual = mods.residuals[i]
         normed_residual = mods.normed_residuals[i]
-        m = normed_residual[test_data.get_stations_col(None)].as_matrix().flatten()
+        m = normed_residual[test_data.get_stations_col(None)].to_numpy().flatten()
         sns.kdeplot(m[np.abs(m) < 5], bw=.1)
         plt.show()
         for ch in config.learning_var:
             print(ch)
-            print(test_data.get_miniOD(None)[test_data.get_stations_col(None)].as_matrix().mean())
-            print(residual[test_data.get_stations_col(None)].as_matrix().mean())
+            print(test_data.get_miniOD(None)[test_data.get_stations_col(None)].to_numpy().mean())
+            print(residual[test_data.get_stations_col(None)].to_numpy().mean())
             plt.subplot(121)
             for s in test_data.get_stations_col(2015):
                 plt.scatter(residual[ch], residual[s])
@@ -361,7 +361,7 @@ def analyse_loglike(test_data, mods):
     print('mean_best', np.mean(np.ma.masked_invalid(LL[r, range(LL.shape[1])])))
     mx = np.max(LL, axis=0)
     LL = LL / mx
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     # for i in np.unique(r):
     #     print(means[r == i].max())
     print('mean NB', means[r < loglikeNB.shape[0]].mean())
@@ -388,7 +388,7 @@ def analyse_loglike(test_data, mods):
 def analyse_loglike_poisson(test_data, mods):
     LL = mods.compute_log_likelihood(test_data, 'P')
     r = np.argmax(np.array(LL), axis=0)
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     for i in np.unique(r):
         print(means[r == i].max())
     plt.hist(r, bins=np.arange(-0.5, len(mods.names) + 1, 1))
@@ -403,7 +403,7 @@ def analyse_loglike_poisson(test_data, mods):
 def analyse_loglike_zero_inf(test_data, mods):
     mods.compute_log_likelihood(test_data, 'ZI')
     r = np.argmax(np.array(mods.loglike), axis=0)
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     for i in np.unique(r):
         print(means[r == i].max())
     plt.hist(r, bins=np.arange(-0.5, len(mods.names) + 1, 1))
@@ -418,7 +418,7 @@ def analyse_loglike_zero_inf(test_data, mods):
 def analyse_loglike_NB(test_data, mods):
     mods.compute_log_likelihood(test_data, 'NB')
     r = np.argmax(np.array(mods.loglikeNB), axis=0)
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     for i in np.unique(r):
         print(means[r == i].max())
     plt.hist(r, bins=np.arange(-0.5, len(mods.names) + 1, 1))
@@ -497,7 +497,7 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
 
         return compute_measures(test_data, mods, path=str(hparam['log']) + str(hparam['decor']) + str(
             hparam['mean']) + training_data.env.system, station=[])
-    m = test_data.get_miniOD([])[test_data.get_stations_col()].mean().as_matrix()
+    m = test_data.get_miniOD([])[test_data.get_stations_col()].mean().to_numpy()
     for station in stations:
         if df is None:
             df = compute_measures(test_data, mods, path=str(hparam['log']) + str(hparam['decor']) + str(
@@ -522,11 +522,11 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
     # plt.title('mae')
     # for i in range(len(mods.rmse)):
     #     print(str(mods.algo[i][0]) + ' ' + str(mods.algo[i][1]))
-    #     print('mae', mods.mae[i].as_matrix().mean())
+    #     print('mae', mods.mae[i].to_numpy().mean())
     #     print('mae_3h', mods.mae_3h[i].mean())
-    #     print('rmse', mods.rmse[i].as_matrix().mean())
+    #     print('rmse', mods.rmse[i].to_numpy().mean())
     #     print('rmse 3h', mods.rmse_3h[i].mean())
-    #     print('rmse_var', mods.rmse_var[i].as_matrix().mean())
+    #     print('rmse_var', mods.rmse_var[i].to_numpy().mean())
     #     sns.kdeplot(mods.mae[i], c='r', label='mae')
     #     sns.kdeplot(mods.mae_3h[i], c='b', label='mae_3h')
     #     sns.kdeplot(mods.rmse[i], c='g', label='rmse')
@@ -570,11 +570,11 @@ def plot_one_day(data_train, data_test, pred_algo, red_algo, is_model_station=Tr
         mod.save()
     p = pd.DataFrame(mod.predict(data), columns=data_train.get_stations_col(), index=data.index)
     diff = data[data_train.get_stations_col()] - p[data_train.get_stations_col()]
-    sns.kdeplot(diff.as_matrix().flatten())
+    sns.kdeplot(diff.to_numpy().flatten())
     plt.show()
-    # print(diff.as_matrix().mean())
-    diff_dep = normalize(diff[data_train.get_dep_cols(None)].as_matrix())
-    diff_arr = normalize(diff[data_train.get_arr_cols(None)].as_matrix())
+    # print(diff.to_numpy().mean())
+    diff_dep = normalize(diff[data_train.get_dep_cols(None)].to_numpy())
+    diff_arr = normalize(diff[data_train.get_arr_cols(None)].to_numpy())
 
     loc = data_train.get_stations_loc()
     cmap = cm.jet

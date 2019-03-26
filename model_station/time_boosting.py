@@ -19,7 +19,7 @@ def add_pre_hours(data, mod, red_dim, tw, hh, boost):
         for i in range(red_dim):
             cols.append('red' + str(i) + '_' + str(h))
     df = pd.DataFrame(np.zeros((d.shape[0] - tw - hh + 1, len(cols))), columns=cols)
-    df[d.columns.values] = d.as_matrix()[tw + hh - 1:, :]
+    df[d.columns.values] = d.to_numpy()[tw + hh - 1:, :]
     for h in range(1, tw + 1):
         cols = []
         for i in range(red_dim):
@@ -47,34 +47,34 @@ def score(data, test, tw, hh, boost, mod):
             print(i)
             if boost == 0:
                 randforest.append(GBT(n_estimators=200, max_depth=10, learning_rate=0.1))
-                randforest[i].fit(mat.as_matrix(), red[tw + hh - 1:, i])
+                randforest[i].fit(mat.to_numpy(), red[tw + hh - 1:, i])
             elif boost == 1 or boost == 3:
                 randforest.append(GBT(n_estimators=200, max_depth=7, learning_rate=0.1))
                 cols = [] + config.learning_var  # ['Heure','wday']
                 for h in range(tw):
                     cols.append('red' + str(i) + '_' + str(h + 1))
-                randforest[i].fit(mat[cols].as_matrix(), red[tw + hh - 1:, i])
+                randforest[i].fit(mat[cols].to_numpy(), red[tw + hh - 1:, i])
             elif boost == 2:
                 randforest.append(GBT(n_estimators=50, max_depth=5, learning_rate=0.1))
                 cols = [] + config.learning_var  # ['Heure','wday']
                 for h in range(tw):
                     cols.append('red' + str(i) + '_' + str(h + 1))
                 red_pred = red[tw + hh - 1:, i] - pred[tw + hh - 1:, i]
-                randforest[i].fit(mat[cols].as_matrix(), red_pred)
+                randforest[i].fit(mat[cols].to_numpy(), red_pred)
     else:
         if boost == 2:
             randforest = RF(n_estimators=500, max_depth=20, min_samples_leaf=20)
-            randforest.fit(mat.as_matrix(), red[tw + hh - 1:, :] - pred[tw + hh - 1, :])
+            randforest.fit(mat.to_numpy(), red[tw + hh - 1:, :] - pred[tw + hh - 1, :])
         else:
             randforest = RF(n_estimators=95, max_depth=25, min_samples_leaf=10)
-            randforest.fit(mat.as_matrix(), red[tw + hh - 1:, :])
+            randforest.fit(mat.to_numpy(), red[tw + hh - 1:, :])
 
     red_test, pred_t, mat_test = add_pre_hours(test, mod, 10, tw, hh, boost)
     if gbt:
         pred_test = np.zeros((mat_test.shape[0], red_dim))
         if boost == 0:
             for i in range(red_dim):
-                pred_test[:, i] = randforest[i].predict(mat_test.as_matrix())
+                pred_test[:, i] = randforest[i].predict(mat_test.to_numpy())
         else:
             for i in range(red_dim):
                 cols = [] + config.learning_var
@@ -82,39 +82,39 @@ def score(data, test, tw, hh, boost, mod):
                 for h in range(tw):
                     cols.append('red' + str(i) + '_' + str(h + 1))
                 if boost==2:
-                    pred_test[:, i] = randforest[i].predict(mat_test[cols].as_matrix())+pred_t[(tw + hh - 1):, i]
+                    pred_test[:, i] = randforest[i].predict(mat_test[cols].to_numpy())+pred_t[(tw + hh - 1):, i]
                 else:
-                    pred_test[:, i] = randforest[i].predict(mat_test[cols].as_matrix())
+                    pred_test[:, i] = randforest[i].predict(mat_test[cols].to_numpy())
     else:
         pred_test = randforest.predict(mat_test)
     pred1 = mod.reduce.inv_transform(pred_test)
     pred_2 = maxi(pred1, 0.01)
     print('horizon', hh, 'tw', tw, boost)
-    res_rmsle = rmsle(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :], axis=1)
-    res_rmsle_base = rmsle(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix(), axis=1)
-    res_rmse = rmse(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :], axis=1)
-    res_rmse_base = rmse(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix(), axis=1)
-    res_mae = mae(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :], axis=1)
-    res_mae_base = mae(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix(), axis=1)
-    res_r2 = r_squared(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :], axis=1)
-    res_r2_base = r_squared(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix(), axis=1)
-    res_mape = mape(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :], axis=1)
-    res_mape_base = mape(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix(), axis=1)
+    res_rmsle = rmsle(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :], axis=1)
+    res_rmsle_base = rmsle(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy(), axis=1)
+    res_rmse = rmse(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :], axis=1)
+    res_rmse_base = rmse(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy(), axis=1)
+    res_mae = mae(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :], axis=1)
+    res_mae_base = mae(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy(), axis=1)
+    res_r2 = r_squared(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :], axis=1)
+    res_r2_base = r_squared(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy(), axis=1)
+    res_mape = mape(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :], axis=1)
+    res_mape_base = mape(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy(), axis=1)
     # f = open('time_boosting'+str(boost)+'.csv','w')
     m = np.array([res_rmsle, res_rmsle_base[tw:], res_rmse, res_rmse_base[tw:], res_mae, res_mae_base[tw:], res_r2,
                   res_r2_base[tw:], res_mape, res_mape_base[tw:]])
     df = pd.DataFrame(m.T, columns=['rmsle', 'rmsle_base', 'rmse', 'rmse_base', 'mae', 'mae_base', 'r2',
                             'r2_base', 'mape', 'mape_base'])
-    print(rmsle(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :]))
-    print(rmsle(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix()))
-    print(rmse(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :]))
-    print(rmse(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix()))
-    print(mae(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :]))
-    print(mae(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix()))
-    print(mape(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :]))
-    print(mape(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix()))
-    print(r_squared(pred_2, test.get_miniOD([])[test.get_stations_col()].as_matrix()[tw + hh - 1:, :]))
-    print(r_squared(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].as_matrix()))
+    print(rmsle(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :]))
+    print(rmsle(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy()))
+    print(rmse(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :]))
+    print(rmse(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy()))
+    print(mae(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :]))
+    print(mae(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy()))
+    print(mape(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :]))
+    print(mape(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy()))
+    print(r_squared(pred_2, test.get_miniOD([])[test.get_stations_col()].to_numpy()[tw + hh - 1:, :]))
+    print(r_squared(mod.predict(test), test.get_miniOD([])[test.get_stations_col()].to_numpy()))
     return df
 
 

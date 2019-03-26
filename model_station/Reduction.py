@@ -12,6 +12,7 @@ from preprocessing.Data import Data
 from preprocessing.Station import Stations
 import utils.modelUtils as utils
 
+
 def loc(self, add_path=''):
     """
     generate the path where the model should be saved/loaded
@@ -142,15 +143,15 @@ class DimRedSum(DimRed):
         self.model = None
         if self.mean:
             _, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[
-                self.preselect].as_matrix().sum(axis=1)
-            self.mean_coef = self.mean_coef[self.preselect].as_matrix()
+                self.preselect].to_numpy().sum(axis=1)
+            self.mean_coef = self.mean_coef[self.preselect].to_numpy()
 
     def transform(self, data):
         if self.mean:
-            x, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].as_matrix().sum(
+            x, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].to_numpy().sum(
                 axis=1)
         else:
-            x = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].as_matrix().sum(axis=1)
+            x = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].to_numpy().sum(axis=1)
         x = x.reshape((x.shape[0], 1))
         return x
 
@@ -174,15 +175,15 @@ class DimRedIdentity(DimRed):
     def train(self, data, **kwargs):
         if self.mean:
             _, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[
-                self.preselect].as_matrix()
-            self.mean_coef = self.mean_coef[self.preselect].as_matrix()
+                self.preselect].to_numpy()
+            self.mean_coef = self.mean_coef[self.preselect].to_numpy()
         self.model = None
 
     def transform(self, data):
         if self.mean:
-            res, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].as_matrix()
+            res, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].to_numpy()
         else:
-            res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].as_matrix()
+            res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.preselect].to_numpy()
         return res
 
     def inv_transform(self, y):
@@ -212,14 +213,14 @@ class DimRedDepArr(DimRed):
     def transform(self, data):
         if isinstance(data, DataFrame):
             res = np.zeros((data.shape[0], 2))
-            res[:, 1] = np.nansum(data[self.arr].as_matrix(), axis=1)
-            res[:, 0] = np.nansum(data[self.dep].as_matrix(), axis=1)
+            res[:, 1] = np.nansum(data[self.arr].to_numpy(), axis=1)
+            res[:, 0] = np.nansum(data[self.dep].to_numpy(), axis=1)
             return res
         else:
             res = np.zeros((data.get_miniOD(hours=[], log=self.log, mean=self.mean).shape[0], 2))
-            res[:, 1] = np.nansum(data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.arr].as_matrix(),
+            res[:, 1] = np.nansum(data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.arr].to_numpy(),
                                   axis=1)
-            res[:, 0] = np.nansum(data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.dep].as_matrix(),
+            res[:, 0] = np.nansum(data.get_miniOD(hours=[], log=self.log, mean=self.mean)[self.dep].to_numpy(),
                                   axis=1)
             return res
 
@@ -251,17 +252,17 @@ class DimRedPCA(DimRed):
         # print(self.preselect_2015)
         if self.mean:
             res, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-            self.mean_coef = self.mean_coef[self.preselect].as_matrix()
+            self.mean_coef = self.mean_coef[self.preselect].to_numpy()
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        self.model.fit(res[self.preselect].as_matrix())
+        self.model.fit(res[self.preselect].to_numpy())
 
     def transform(self, data):
         if self.mean:
             res, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        x = self.model.transform(res[self.preselect].as_matrix())
+        x = self.model.transform(res[self.preselect].to_numpy())
         return x
 
     def inv_transform(self, y):
@@ -293,17 +294,17 @@ class DimRedPCAKernel(DimRed):
     def train(self, data, **kwargs):
         if self.mean:
             res, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-            self.mean_coef = self.mean_coef[self.preselect].as_matrix()
+            self.mean_coef = self.mean_coef[self.preselect].to_numpy()
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        self.model.fit(res[self.preselect].as_matrix())
+        self.model.fit(res[self.preselect].to_numpy())
 
     def transform(self, data):
         if self.mean:
             res, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        x = self.model.transform(res[self.preselect].as_matrix())
+        x = self.model.transform(res[self.preselect].to_numpy())
         return x
 
     def inv_transform(self, y):
@@ -342,10 +343,10 @@ class DimRedSVD(DimRed):
     def train(self, data, **kwargs):
         if self.mean:
             res, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-            self.mean_coef = self.mean_coef[self.preselect].as_matrix()
+            self.mean_coef = self.mean_coef[self.preselect].to_numpy()
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        d = res[self.preselect].as_matrix()
+        d = res[self.preselect].to_numpy()
         self.model.fit(d)
 
     def transform(self, data):
@@ -353,7 +354,7 @@ class DimRedSVD(DimRed):
             res, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        x = self.model.transform(res[self.preselect].as_matrix())
+        x = self.model.transform(res[self.preselect].to_numpy())
         return x
 
     def inv_transform(self, y):
@@ -551,11 +552,11 @@ class DimRedAutoEncoder(DimRed):
         args.update(kwargs)
         if self.mean:
             res, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-            self.mean_coef = self.mean_coef[self.preselect].as_matrix()
+            self.mean_coef = self.mean_coef[self.preselect].to_numpy()
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        self.model.fit(res[self.preselect].as_matrix(),
-                       res[self.preselect].as_matrix(),
+        self.model.fit(res[self.preselect].to_numpy(),
+                       res[self.preselect].to_numpy(),
                        epochs=args['n_epochs'],
                        batch_size=args['batch_size'],
                        verbose=args['verb'],
@@ -569,7 +570,7 @@ class DimRedAutoEncoder(DimRed):
             res, _ = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        x = self.encoder.predict(res[self.preselect].as_matrix())
+        x = self.encoder.predict(res[self.preselect].to_numpy())
         return x
 
     def inv_transform(self, y):
@@ -670,8 +671,8 @@ class Clustering(Reduction):
         :param kwargs: not used
         :return: learning matrix
         """
-        learn = data.get_synthetic_miniOD([], self.log)[self.preselect].as_matrix()
-        # coef_2015 = data.get_miniOD(2015)[self.preselect_2015].as_matrix().mean(axis=0)
+        learn = data.get_synthetic_miniOD([], self.log)[self.preselect].to_numpy()
+        # coef_2015 = data.get_miniOD(2015)[self.preselect_2015].to_numpy().mean(axis=0)
         coef = learn.mean(axis=0)
         coef = utils.maxi(coef,0.001)
         # self.station_coef_2015 = np.zeros(coef_2015.shape)
@@ -690,7 +691,7 @@ class Clustering(Reduction):
         # d = data.get_synthetic_miniOD(2017)
         # r = np.zeros(shape=(d.shape[0], self.dim))
         # for i in range(self.dim):
-        #     r[:, i] = d.as_matrix()[:, self.labels].mean(axis=1)
+        #     r[:, i] = d.to_numpy()[:, self.labels].mean(axis=1)
         # k = 0
         # self.labels = s
 
@@ -700,13 +701,13 @@ class Clustering(Reduction):
         :param data: complete pandas dataframe of trips 
         :return: new model objectives (numpy matrix) same number of rows, self.dim columns
         """
-        # coef_2017 = data.get_synthetic_miniOD(None)[self.preselect].as_matrix().mean(axis=0)
+        # coef_2017 = data.get_synthetic_miniOD(None)[self.preselect].to_numpy().mean(axis=0)
         if self.mean:
             res, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-            self.mean_coef = self.mean_coef[self.preselect].as_matrix()
+            self.mean_coef = self.mean_coef[self.preselect].to_numpy()
         else:
             res = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
-        data = res[self.preselect].as_matrix() / utils.maxi(self.station_coef,0.001)
+        data = res[self.preselect].to_numpy() / utils.maxi(self.station_coef,0.001)
         res = np.zeros((data.shape[0], self.dim))
         # self.station_coef_2015 = np.zeros(coef_2015.shape)
         # self.station_coef_2017 = np.zeros(coef_2017.shape)
@@ -800,7 +801,7 @@ class ClusteringHierarchy(Clustering):
 
     def train(self, data, **kwargs):
         self.pre_train(data)
-        learn = data.get_synthetic_miniOD([], self.log)[self.preselect].as_matrix()
+        learn = data.get_synthetic_miniOD([], self.log)[self.preselect].to_numpy()
         # norm = learn.sum(axis=0)
         norm = self.station_coef
         l = np.zeros((learn.shape[0] + 1, learn.shape[1]))
@@ -935,7 +936,7 @@ class ClusteringOD(Reduction):
             mOD = data.get_miniOD(hours=[], log=self.log, mean=self.mean)
         res = np.zeros((mOD.shape[0], self.private_dim, self.private_dim))
         da['ind'] = da.index.values
-        d = da.as_matrix()
+        d = da.to_numpy()
         # print(invstations)
         for i in range(da.shape[0]):
             l = d[i, :]

@@ -38,10 +38,10 @@ class ServiceLevel(object):
             self.dict['cols'] = self.mod.models[0].reduce.preselect
         self.dict['arr_cols'] = data.get_arr_cols(None)
         self.dict['stations'] = data.get_stations_ids(None)
-        self.dict['capacities'] = data.get_stations_capacities(None).as_matrix().flatten()
+        self.dict['capacities'] = data.get_stations_capacities(None).to_numpy().flatten()
         if predict:
             self.mean = pd.DataFrame(self.mod.predict(WT), columns=self.dict['cols'])[
-                self.dict['cols']].as_matrix()
+                self.dict['cols']].to_numpy()
         else:
             if config.learning_var.__contains__('Heure'):
                 dd = pd.merge(WT, data.get_miniOD(), 'left',
@@ -52,9 +52,9 @@ class ServiceLevel(object):
                                   'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21',
                                   'h22',
                                   'h23'])
-            self.mean = dd[self.dict['cols']].as_matrix()
+            self.mean = dd[self.dict['cols']].to_numpy()
         self.var = pd.DataFrame(self.mod.variance(WT), columns=self.dict['cols'])[
-            self.dict['cols']].as_matrix()
+            self.dict['cols']].to_numpy()
         self.var[self.var == 0] = 0.01
 
     def compute_service_gaussian(self, current_capacity=None):
@@ -67,15 +67,15 @@ class ServiceLevel(object):
         cum_var = pd.DataFrame(np.cumsum(self.var, axis=0), columns=self.dict['cols'])
         cum_mean = pd.DataFrame(np.cumsum(self.mean, axis=0), columns=self.dict['cols'])
         m = pd.DataFrame(self.mean, columns=self.dict['cols'])
-        arr = m[self.dict['arr_cols']].as_matrix()
-        dep = m.drop(self.dict['arr_cols'], axis=1).as_matrix()
+        arr = m[self.dict['arr_cols']].to_numpy()
+        dep = m.drop(self.dict['arr_cols'], axis=1).to_numpy()
         for s in self.dict['stations']:
-            cum_mean[str(s)] = cum_mean['End date ' + str(s)].as_matrix() - cum_mean[
-                'Start date ' + str(s)].as_matrix()
-            cum_var[str(s)] = cum_var['End date ' + str(s)].as_matrix() + cum_var[
-                'Start date ' + str(s)].as_matrix()
-        self.dict['cum_mean'] = cum_mean[list(map(str, self.dict['stations']))].as_matrix()
-        self.dict['cum_var'] = cum_var[list(map(str, self.dict['stations']))].as_matrix()
+            cum_mean[str(s)] = cum_mean['End date ' + str(s)].to_numpy() - cum_mean[
+                'Start date ' + str(s)].to_numpy()
+            cum_var[str(s)] = cum_var['End date ' + str(s)].to_numpy() + cum_var[
+                'Start date ' + str(s)].to_numpy()
+        self.dict['cum_mean'] = cum_mean[list(map(str, self.dict['stations']))].to_numpy()
+        self.dict['cum_var'] = cum_var[list(map(str, self.dict['stations']))].to_numpy()
         if current_capacity is None:
             service = np.zeros((np.max(self.dict['capacities'] + 1), dep.shape[1]))
             for c in range(np.max(self.dict['capacities']) + 1):
@@ -125,8 +125,8 @@ class ServiceLevel(object):
         proba_dep_inf = proba_dep_inf - p_dep_minus_arr
         # get expected number of departure and arrivals
         m = pd.DataFrame(self.mean, columns=self.dict['cols'])
-        arr = m[self.dict['arr_cols']].as_matrix()
-        dep = m.drop(self.dict['arr_cols'], axis=1).as_matrix()
+        arr = m[self.dict['arr_cols']].to_numpy()
+        dep = m.drop(self.dict['arr_cols'], axis=1).to_numpy()
         if not (available_bikes is None):
             available_doks = self.dict['capacities'] - available_bikes
             available_doks = maxi(int(p_dep_minus_arr.shape[2] / 2) - available_doks, 0)
@@ -163,14 +163,14 @@ class ServiceLevel(object):
         # lambdas = np.cumsum(self.mean,axis=0)
         cum_mean = pd.DataFrame(np.cumsum(self.mean, axis=0), columns=self.dict['cols'])
         m = pd.DataFrame(self.mean, columns=self.dict['cols'])
-        arr = m[self.dict['arr_cols']].as_matrix()
-        dep = m.drop(self.dict['arr_cols'], axis=1).as_matrix()
+        arr = m[self.dict['arr_cols']].to_numpy()
+        dep = m.drop(self.dict['arr_cols'], axis=1).to_numpy()
         # for s in self.dict['stations']:
-        #     cum_mean[str(s)] = cum_mean['End date ' + str(s)].as_matrix() - cum_mean[
-        #         'Start date ' + str(s)].as_matrix()
+        #     cum_mean[str(s)] = cum_mean['End date ' + str(s)].to_numpy() - cum_mean[
+        #         'Start date ' + str(s)].to_numpy()
         cum_arr = cum_mean[self.dict['arr_cols']]
         cum_dep = cum_mean.drop(self.dict['arr_cols'], axis=1)
-        # self.dict['cum_mean'] = cum_mean[list(map(str, self.dict['stations']))].as_matrix()
+        # self.dict['cum_mean'] = cum_mean[list(map(str, self.dict['stations']))].to_numpy()
         if available_bikes is None:
             service = np.zeros((np.max(self.dict['capacities'] + 1), dep.shape[1]))
             for c in range(np.max(self.dict['capacities']) + 1):

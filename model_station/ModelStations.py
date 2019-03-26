@@ -119,7 +119,7 @@ class ModelStations(object):
 
     def get_decor_factors(self, learn:(Data,pd.DataFrame)):
         n=20
-        df = self.get_factors(learn).as_matrix()
+        df = self.get_factors(learn).to_numpy()
         if self.featurePCA is None:
             self.sum = df.var(axis=0)
             self.mean = df.mean(axis=0)
@@ -257,4 +257,4 @@ class ModelStations(object):
             x=self.get_decor_factors(data)
         else:
             x=self.get_factors(data)
-        self.reduce.train_inv(self.meanPredictor.predict(x), data.get_miniOD([])[data.get_stations_col()].as_matrix())
+        self.reduce.train_inv(self.meanPredictor.predict(x), data.get_miniOD([])[data.get_stations_col()].to_numpy())

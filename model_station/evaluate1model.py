@@ -69,7 +69,7 @@ class EvaluateModel(object):
             self.pred = self.mod.predict(x)
         print('pred_mean', self.pred.mean())
         real = self.mod.get_y(x.get_miniOD(self.hparam['hours']))
-        print('real_mean', real.as_matrix().mean())
+        print('real_mean', real.to_numpy().mean())
         self.mod.reset()
         return self.pred - real
 
@@ -80,7 +80,7 @@ class EvaluateModel(object):
         if self.var is None and self.hparam['zero_prob']:
             self.var = self.mod.zero_prob(x)
         if load: self.mod.reset()
-        y = self.mod.get_y(x.get_miniOD(self.hparam['hours'])).as_matrix()
+        y = self.mod.get_y(x.get_miniOD(self.hparam['hours'])).to_numpy()
         if station:
             if self.var:
                 return fct(y[:, station], self.pred[:, station], self.var[:, station])
@@ -196,9 +196,9 @@ class EvaluateModel(object):
         # self.mod.load()
         # l = self.mod.predict(x)
         # if isinstance(x, Data):
-        #     real = self.mod.get_y(x.get_miniOD(self.hparam['hours'])).as_matrix()
+        #     real = self.mod.get_y(x.get_miniOD(self.hparam['hours'])).to_numpy()
         # elif isinstance(x, pd.DataFrame):
-        #     real = x.as_matrix()
+        #     real = x.to_numpy()
         # else:
         real = y
         # if station:

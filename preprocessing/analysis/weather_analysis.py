@@ -43,7 +43,7 @@ def analyse_gaps(env):
         r[c] = r[c].apply(lambda x: float(str(x).replace(',', '.')))
     # r.loc[r['pression'] == 0, 'pression'] = np.nan
 
-    # r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].as_matrix())
+    # r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].to_numpy())
     ferie = pd.read_csv(env.off_days, delimiter=',', quotechar='"')
     # ferie['jour'] = ferie['\xef\xbb\xbfjour']
     ferie['ferie'] = np.ones(ferie.shape[0], dtype=int)
@@ -87,7 +87,7 @@ def analyse_gaps(env):
     l.remove('Jour')
     ll = ['neige', 'pluie', 'fort', 'modere', 'verglas', 'bruine', 'poudrerie', 'brouillard', 'nuageux', 'orage',
           'degage','ND' ]
-    a = r[ll].as_matrix().sum(axis=0)
+    a = r[ll].to_numpy().sum(axis=0)
     print(r.shape)
     print(r['temp'].isnull().sum())
     print(r['Hum'].isnull().sum())
@@ -189,7 +189,7 @@ def compute_pre_heure(env):
         r[c] = r[c].apply(lambda x: float(str(x).replace(',', '.')))
     r.loc[r['pression'] == 0, 'pression'] = np.nan
 
-    r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].as_matrix())
+    r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].to_numpy())
 
     ##########################################
     ##    chargement des jours feries       ##
