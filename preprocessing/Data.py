@@ -2,12 +2,13 @@ from preprocessing.Station import *
 from preprocessing.Environment import Environment
 import config
 
+
 class Data(object):
     def __init__(self, env=None, first_name='Bixi', second_name=None):
         if env:
             self.env = env
         else:
-            self.env=Environment(first_name,second_name)
+            self.env = Environment(first_name, second_name)
         self.stations = None  # stations numbers
         self.OD = None  # OD matrix (no temporal aspect)
         self.hour_OD = None  # OD matrix per hour
@@ -37,7 +38,7 @@ class Data(object):
             # 'orage',
         ]
 
-    def get_OD(self): #get and set
+    def get_OD(self):  # get and set
         if self.OD is None:
             self.OD = self.env.load(self.env.OD_path)
         return self.OD
@@ -50,12 +51,12 @@ class Data(object):
         return cols
 
     def get_dep_cols(self, since):
-        return self.get_col('Start date ',since)
+        return self.get_col('Start date ', since)
 
     def get_arr_cols(self, since):
-        return self.get_col('End date ',since)
+        return self.get_col('End date ', since)
 
-    def get_col(self,s,since):
+    def get_col(self, s, since):
         cols = []
         for st in self.get_stations_ids(since):
             cols.append(s + str(int(st)))
@@ -88,8 +89,7 @@ class Data(object):
         return self.stations.get_loc()
 
     def towindow_features(self, miniOD, hours):
-        #print(miniOD.columns.values)
-        col = np.intersect1d(miniOD.columns.values, self.meteo) #Find the intersection of two arrays.
+        col = np.intersect1d(miniOD.columns.values, self.meteo)
 
         #miniOD = miniOD.sort_values(by='pdy timestamp')
         miniOD = miniOD.sort_values(by='UTC timestamp')
@@ -97,7 +97,7 @@ class Data(object):
             for c in col:
                 miniOD[c + str(h)] = miniOD[c].shift(periods=h)
         if hours != []:
-            miniOD=miniOD[np.max(hours):]
+            miniOD = miniOD[np.max(hours):]
         return miniOD
 
     def get_miniOD(self, hours, from_year=None, log=False, mean=False):
@@ -117,10 +117,12 @@ class Data(object):
         res = self.towindow_features(res, hours)
 
         if log:
-            res[self.get_stations_col(since=from_year)] = np.log(1 + res[self.get_stations_col(since=from_year)])
+            res[self.get_stations_col(since=from_year)] = np.log(
+                1 + res[self.get_stations_col(since=from_year)])
         if mean:
-            m = res[self.get_stations_col(since=from_year)].mean(axis=0)+0.01
-            res[self.get_stations_col(since=from_year)] = res[self.get_stations_col(since=from_year)] / m
+            m = res[self.get_stations_col(since=from_year)].mean(axis=0) + 0.01
+            res[self.get_stations_col(
+                since=from_year)] = res[self.get_stations_col(since=from_year)] / m
             return res, m
 
         return res
@@ -130,7 +132,8 @@ class Data(object):
 
     def get_synthetic_miniOD(self, hours, log, from_year=None):
         self.sminiOD = self.get_miniOD(hours, from_year, log)
-        self.sminiOD['hh'] = self.sminiOD['UTC timestamp'].apply(lambda x: x % (3600 * 24 * 7))
+        self.sminiOD['hh'] = self.sminiOD['UTC timestamp'].apply(
+            lambda x: x % (3600 * 24 * 7))
         self.sminiOD = self.sminiOD.groupby('hh').mean()
         return self.sminiOD
 
@@ -151,11 +154,11 @@ class Data(object):
     def get_partialdata_n(self, start, n):
         d = Data(self.env)
         dim = self.env.load(self.env.station_df_path).shape[0]
-        if start<0:
-            start=dim+start
-        d.min=self.min+start/dim
-        if n!=-1:
-            d.max=self.min+(start+n)/dim
+        if start < 0:
+            start = dim + start
+        d.min = self.min + start / dim
+        if n != -1:
+            d.max = self.min + (start + n) / dim
         return d
 
 

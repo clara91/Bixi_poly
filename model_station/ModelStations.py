@@ -59,6 +59,7 @@ class ModelStations(object):
                 type(self.reduce).save(self.reduce,add_path=self.env.system)
         else:
             type(self.reduce).train(self.reduce, learn, **self.hparam['red'])
+            print(self.env.system)
             type(self.reduce).save(self.reduce, add_path=self.env.system)
         x = self.reduce
 
@@ -255,4 +256,3 @@ class ModelStations(object):
         else:
             x=self.get_factors(data)
         self.reduce.train_inv(self.meanPredictor.predict(x), data.get_miniOD([])[data.get_stations_col()].to_numpy())
-        #self.reduce.inv_transform(self.meanPredictor.predict(x), data.get_miniOD([])[data.get_stations_col()].to_numpy())

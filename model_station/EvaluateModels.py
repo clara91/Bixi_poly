@@ -8,15 +8,15 @@ import pandas as pd
 import seaborn as sns
 import tensorflow as tf
 import sys
-#print(sys.path)
-sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
-
 from utils.modelUtils import normalize
 from config import root_path
 from model_station.CombinedModelStation import CombinedModelStation
 from model_station.evaluate1model import EvaluateModel
 from preprocessing.Data import Data
 from preprocessing.Environment import Environment
+
+#print(sys.path)
+sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
 
 
 class EvaluatesModels(object):
@@ -28,8 +28,8 @@ class EvaluatesModels(object):
             'norm': False,              #normalize objectives
             'load': True,               #load model
             'hours': [],                #hours to consider as features
-            'var':False,                #learn a variance predictor
-            'zero_prob':False,          #learn a predictor that estimate the 0 probability
+            'var': False,                #learn a variance predictor
+            'zero_prob': False,          #learn a predictor that estimate the 0 probability
             'log': False,               #log transform the objectives
             'mean': False,              #
             'red': {},                  #reduction hparam
@@ -119,21 +119,31 @@ class EvaluatesModels(object):
         #print(self)
         test_data = test_data.get_partialdata_n((max_week-self.hparam['n_week'])*168,-1)
         for i in range(0,int(test_data.get_miniOD([]).shape[0]-self.hparam['n_week']*168),24):
+        e = None
+        k = 0
+        test_data = test_data.get_partialdata_n(
+            (max_week - self.hparam['n_week']) * 168, - 1)
+        for i in range(0, int(test_data.get_miniOD([]).shape[0] - self.hparam['n_week'] * 168), 24):
             self.models[0].mod.load()
-            train=test_data.get_partialdata_n(i,int(i+self.hparam['n_week']*168))
+            train = test_data.get_partialdata_n(
+                i, int(i + self.hparam['n_week'] * 168))
             # n=1-(168*self.hparam['n_week'])/data.get_miniOD([]).shape[0]
             #self.models[0].mod.train_inv(train)
             data=test_data.get_partialdata_n(int(i+self.hparam['n_week']*168),int(i+self.hparam['n_week']*168)+24)
             res= self.compute_err(data,err,station,axis)
-            # print(err)
-            k+=1
+
+            self.models[0].mod.train_inv(train)
+            data = test_data.get_partialdata_n(
+                int(i + self.hparam['n_week'] * 168), int(i + self.hparam['n_week'] * 168) + 24)
+            res = self.compute_err(data, err, station, axis)
+
+            k += 1
             print(k)
             if e is None:
-                e=res
+                e = res
             else:
-                e+=res
-        return e/k
-
+                e += res
+        return e / k
 
     def compute_log_likelihood(self, test_data, distrib, station=None, axis=None):
         ll = []
@@ -444,6 +454,9 @@ def compute_measures(test_data, mods, path='', station=None):
     # mods = EvaluatesModels(training_data, pred_algos, red_algos, red_dim, hparam['is_combined'], **hparam)
     # err = mods.compute_err_svdevol(test_data, measures, station=station)
     err = mods.compute_err(test_data, measures, station=station)
+    else:
+        tt = False
+    err = mods.compute_err_svdevol(test_data, measures, station=station)
     if tt:
         measures.append('train_time')
         measures.append('test_time')
@@ -735,6 +748,7 @@ if __name__ == '__main__':
         'hours': [],
         'decor': False,
         'n_week':4,
+        'n_week': 4,
         'is_combined': 0,
     }
     with tf.device('/cpu:0'):

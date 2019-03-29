@@ -12,6 +12,7 @@ from preprocessing.Data import Data
 from preprocessing.Station import Stations
 import utils.modelUtils as utils
 
+
 def loc(self, add_path=''):
     """
     generate the path where the model should be saved/loaded
@@ -112,8 +113,6 @@ class Reduction(object):
         :return: None
         """
         self.location = loc(self, add_path)
-        #print("aqui")
-        #print(self.location)
         joblib.dump(self, self.location)
         # raise NotImplementedError('save not Implemented')
 
