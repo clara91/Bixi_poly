@@ -65,7 +65,7 @@ class DecisionIntervals(object):
         cond = True
         i0 = 0
         while cond:
-            cond = not ((WT['wday'].as_matrix()[i0] == 6) and (WT['Heure'].as_matrix()[i0] == 0))
+            cond = not ((WT['wday'].to_numpy()[i0] == 6) and (WT['Heure'].to_numpy()[i0] == 0))
             i0 += 1
         i0 -= 1
         cols_min = []
@@ -96,9 +96,9 @@ class DecisionIntervals(object):
                 m = m / data.get_stations_capacities(None)
                 t = t / data.get_stations_capacities(None)
                 M = M / data.get_stations_capacities(None)
-                inter_min.as_matrix()[:, 5 * d + h] = m
-                inter_target.as_matrix()[:, 5 * d + h] = t
-                inter_max.as_matrix()[:, 5 * d + h] = M
+                inter_min.to_numpy()[:, 5 * d + h] = m
+                inter_target.to_numpy()[:, 5 * d + h] = t
+                inter_max.to_numpy()[:, 5 * d + h] = M
 
         min_max = pd.read_csv(open(config.root_path + 'resultats/stations_bixi_min_max_target.csv'), sep=',')
         min_max[cols_min] = np.nan
@@ -174,7 +174,7 @@ class DecisionIntervals(object):
         df.loc[:, 'code'] = df['code'].apply(f)
         df.set_index(df['code'], inplace=True)
         df.drop(-1, axis=0, inplace=True)
-        df['info.capacity'].update(data.get_stations_capacities(None, df['code'].as_matrix()))
+        df['info.capacity'].update(data.get_stations_capacities(None, df['code'].to_numpy()))
         rowsmin = {}
         rowsmax = {}
         rowstar = {}
@@ -248,7 +248,7 @@ class DecisionIntervals(object):
         df.loc[:, 'code'] = df['code'].apply(f)
         df.set_index(df['code'], inplace=True)
         df.drop(-1, axis=0, inplace=True)
-        df['info.capacity'].update(data.get_stations_capacities(None, df['code'].as_matrix()))
+        df['info.capacity'].update(data.get_stations_capacities(None, df['code'].to_numpy()))
         rowsmin = []
         rowsmax = []
         for i in range(1, 8):
@@ -266,8 +266,8 @@ class DecisionIntervals(object):
                 for i in range(len(val)):
                     df.loc[df[val[i]].isnull(), val[i]] = df[val[i - len(self.hours)]][df[val[i]].isnull()]
 
-        m = df[rowsmin].as_matrix()
-        M = df[rowsmax].as_matrix()
+        m = df[rowsmin].to_numpy()
+        M = df[rowsmax].to_numpy()
         return np.nanmean(M - m)
 
     def mean_alerts(self, test_data, intervals, df):
@@ -290,8 +290,8 @@ class DecisionIntervals(object):
         intermax = np.round(intermax)
         tar_min=intertar-intermin
         max_tar=intermax-intertar
-        mat = df[test_data.get_arr_cols(None)].as_matrix() - df[test_data.get_dep_cols(None)].as_matrix()
-        print(df['Heure'].as_matrix()[0])
+        mat = df[test_data.get_arr_cols(None)].to_numpy() - df[test_data.get_dep_cols(None)].to_numpy()
+        print(df['Heure'].to_numpy()[0])
         print(mat.sum())
         def f(h):
             if h < 6:
@@ -305,7 +305,7 @@ class DecisionIntervals(object):
             else:
                 return 20
         features = df['wday'] * 24 + df['Heure'].apply(f)
-        inv = intertar.loc[features[0], :].as_matrix()
+        inv = intertar.loc[features[0], :].to_numpy()
         r1 = np.zeros((24,inv.shape[0]))
         r2 = np.zeros((24,inv.shape[0]))
         for i in range(mat.shape[0]):
@@ -313,12 +313,12 @@ class DecisionIntervals(object):
             b1=np.array([1])
             b2=np.array([1])
             while b1.sum()>0 or b2.sum()>0:
-                b1 = inv<intermin.loc[features[i],:].as_matrix()
-                b2 = inv>intermax.loc[features[i],:].as_matrix()
+                b1 = inv<intermin.loc[features[i],:].to_numpy()
+                b2 = inv>intermax.loc[features[i],:].to_numpy()
                 r1[i%24] += b1
                 r2[i%24] += b2
-                inv[b1] += maxi(tar_min.loc[features[i],:].as_matrix()[b1],1)
-                inv[b2] -= maxi(max_tar.loc[features[i],:].as_matrix()[b2],1)
+                inv[b1] += maxi(tar_min.loc[features[i],:].to_numpy()[b1],1)
+                inv[b2] -= maxi(max_tar.loc[features[i],:].to_numpy()[b2],1)
                 inv = np.round(inv)
                 # print(inv)
         r1s = r1.sum(axis=1)/(mat.shape[0])*24
@@ -340,7 +340,7 @@ class DecisionIntervals(object):
         intermin.columns = list(map(lambda x: x.replace('Min', 'Start date'), intermin.columns.values))
         intermax.columns = list(map(lambda x: x.replace('Max', 'End date'), intermax.columns.values))
 
-        # diff=intermax.as_matrix()-intermin.as_matrix()
+        # diff=intermax.to_numpy()-intermin.to_numpy()
 
         # df = test_data.get_miniOD()
         colstart = test_data.get_dep_cols(2015)
@@ -366,11 +366,11 @@ class DecisionIntervals(object):
             if single:
                 d = d.iloc[0:self.length[p], :]
             inter = intermin.loc[24 * wd + self.hours[p], :]
-            res_min = mse(maxi(d[colstart].as_matrix() - inter[colstart].as_matrix(), 0), 0)
+            res_min = mse(maxi(d[colstart].to_numpy() - inter[colstart].to_numpy(), 0), 0)
             # print(res_min)
             inter = intermax.loc[24 * wd + self.hours[p], :]
             available_docks = maxi(cap - inter, 0)
-            res_max = mse(maxi(d[colend].as_matrix() - available_docks[colend].as_matrix(), 0), 0)
+            res_max = mse(maxi(d[colend].to_numpy() - available_docks[colend].to_numpy(), 0), 0)
             # print(res_max)
             m.append(res_min)
             M.append(res_max)
@@ -426,11 +426,11 @@ class DecisionIntervals(object):
                 d = d.iloc[0:self.length[p], :]
             # d = d.set_index([list(map(lambda x:x[3]*24+x[4],d.index))])
             inter = intertar_start.loc[24 * wd + self.hours[p], :]
-            res_min = mse(maxi(d[colstart].as_matrix() - inter[colstart].as_matrix(), 0), 0)
+            res_min = mse(maxi(d[colstart].to_numpy() - inter[colstart].to_numpy(), 0), 0)
             # print('min',res_min)
             inter = intertar_end.loc[24 * wd + self.hours[p], :]
             available_docks = maxi(cap - inter, 0)
-            res_max = mse(maxi(d[colend].as_matrix() - available_docks[colend].as_matrix(), 0), 0)
+            res_max = mse(maxi(d[colend].to_numpy() - available_docks[colend].to_numpy(), 0), 0)
             # print('max',res_max)
             m.append(res_min)
             M.append(res_max)
@@ -453,7 +453,7 @@ class DecisionIntervals(object):
         intermin.columns = list(map(lambda x: x.replace('Min', 'Start date'), intermin.columns.values))
         intermax.columns = list(map(lambda x: x.replace('Max', 'Start date'), intermax.columns.values))
         colstart = test_data.get_dep_cols(2015)
-        return (intermax[colstart] - intermin[colstart]).as_matrix().mean()
+        return (intermax[colstart] - intermin[colstart]).to_numpy().mean()
 
     @staticmethod
     def sum_int(test_data, intervals):
@@ -468,8 +468,8 @@ class DecisionIntervals(object):
         intermax.columns = list(map(lambda x: x.replace('Max', 'Start date'), intermax.columns.values))
         intertar.columns = list(map(lambda x: x.replace('Tar', 'Start date'), intertar.columns.values))
         colstart = test_data.get_dep_cols(2015)
-        return int(intermin[colstart].as_matrix().sum()) / 35, int(intermax[colstart].as_matrix().sum()) / 35, int(
-            intertar[colstart].as_matrix().sum()) / 35
+        return int(intermin[colstart].to_numpy().sum()) / 35, int(intermax[colstart].to_numpy().sum()) / 35, int(
+            intertar[colstart].to_numpy().sum()) / 35
 
 
 if __name__ == '__main__':

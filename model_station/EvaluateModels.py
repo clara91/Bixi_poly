@@ -116,12 +116,13 @@ class EvaluatesModels(object):
     def compute_err_svdevol(self, test_data, err: list, max_week=10, station=None, axis=None):
         e =None
         k=0
+        #print(self)
         test_data = test_data.get_partialdata_n((max_week-self.hparam['n_week'])*168,-1)
         for i in range(0,int(test_data.get_miniOD([]).shape[0]-self.hparam['n_week']*168),24):
             self.models[0].mod.load()
             train=test_data.get_partialdata_n(i,int(i+self.hparam['n_week']*168))
             # n=1-(168*self.hparam['n_week'])/data.get_miniOD([]).shape[0]
-            self.models[0].mod.train_inv(train)
+            #self.models[0].mod.train_inv(train)
             data=test_data.get_partialdata_n(int(i+self.hparam['n_week']*168),int(i+self.hparam['n_week']*168)+24)
             res= self.compute_err(data,err,station,axis)
             # print(err)
@@ -147,7 +148,7 @@ class EvaluatesModels(object):
             # print(self.compute_err(test_data, ['rmse','r2'], station=s))
             plt.clf()
             # plt.subplot(2,1,1)
-            y = self.models[0].mod.get_y(test_data.get_miniOD(self.models[0].hparam['hours'])).as_matrix()
+            y = self.models[0].mod.get_y(test_data.get_miniOD(self.models[0].hparam['hours'])).to_numpy()
             plt.plot(y[300:600, s], label='real demand')
             plt.title(test_data.get_stations_col()[s])
             for mod in self.models:
@@ -156,7 +157,7 @@ class EvaluatesModels(object):
             plt.xlabel('Time (hours)')
             plt.ylabel('Number of trips')
             # plt.subplot(2,1,2)
-            # y = self.models[0].mod.get_y(train_data.get_miniOD(self.models[0].hparam['hours'])).as_matrix()
+            # y = self.models[0].mod.get_y(train_data.get_miniOD(self.models[0].hparam['hours'])).to_numpy()
             # plt.plot(y[:, s], label='real demand')
             # plt.title(train_data.get_stations_col()[s])
             # for mod in self.models:
@@ -186,7 +187,7 @@ def RMSE_vs_time(test_data, mods):
     residuals = mods.compute_residuals(test_data)
     w = 24
     for i in range(len(residuals)):
-        res = (residuals[i][test_data.get_stations_col(2015)].as_matrix() ** 2).mean(axis=1)
+        res = (residuals[i][test_data.get_stations_col(2015)].to_numpy() ** 2).mean(axis=1)
         m = np.zeros(res.shape[0] - w)
         for h in range(w):
             m += res[h:-w + h]
@@ -210,7 +211,7 @@ def err_vs_time(test_data, mods: EvaluatesModels, err=['rmse'], station=None):
         scores = scores.reshape((scores.shape[0], scores.shape[2]))
         w = 24
         for i in range(scores.shape[0]):
-            res = scores[i]  # [test_data.get_stations_col(2015)].as_matrix() ** 2).mean(axis=1)
+            res = scores[i]  # [test_data.get_stations_col(2015)].to_numpy() ** 2).mean(axis=1)
             m = np.zeros(res.shape[0] - w)
             for h in range(w):
                 m += res[h:-w + h]
@@ -232,7 +233,7 @@ def RMSE_norm_vs_time(test_data, mods):
     residuals = mods.compute_normed_residuals(test_data)
     w = 24
     for i in range(len(residuals)):
-        res = (residuals[i][test_data.get_stations_col(2015)].as_matrix() ** 2).mean(axis=1)
+        res = (residuals[i][test_data.get_stations_col(2015)].to_numpy() ** 2).mean(axis=1)
         m = np.zeros(res.shape[0] - w)
         for h in range(w):
             m += res[h:-w + h]
@@ -252,13 +253,13 @@ def plot_residuals(test_data, mods):
     for i in range(len(mods.residuals)):
         residual = mods.residuals[i]
         normed_residual = mods.normed_residuals[i]
-        m = normed_residual[test_data.get_stations_col(None)].as_matrix().flatten()
+        m = normed_residual[test_data.get_stations_col(None)].to_numpy().flatten()
         sns.kdeplot(m[np.abs(m) < 5], bw=.1)
         plt.show()
         for ch in config.learning_var:
             print(ch)
-            print(test_data.get_miniOD(None)[test_data.get_stations_col(None)].as_matrix().mean())
-            print(residual[test_data.get_stations_col(None)].as_matrix().mean())
+            print(test_data.get_miniOD(None)[test_data.get_stations_col(None)].to_numpy().mean())
+            print(residual[test_data.get_stations_col(None)].to_numpy().mean())
             plt.subplot(121)
             for s in test_data.get_stations_col(2015):
                 plt.scatter(residual[ch], residual[s])
@@ -361,7 +362,7 @@ def analyse_loglike(test_data, mods):
     print('mean_best', np.mean(np.ma.masked_invalid(LL[r, range(LL.shape[1])])))
     mx = np.max(LL, axis=0)
     LL = LL / mx
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     # for i in np.unique(r):
     #     print(means[r == i].max())
     print('mean NB', means[r < loglikeNB.shape[0]].mean())
@@ -388,7 +389,7 @@ def analyse_loglike(test_data, mods):
 def analyse_loglike_poisson(test_data, mods):
     LL = mods.compute_log_likelihood(test_data, 'P')
     r = np.argmax(np.array(LL), axis=0)
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     for i in np.unique(r):
         print(means[r == i].max())
     plt.hist(r, bins=np.arange(-0.5, len(mods.names) + 1, 1))
@@ -403,7 +404,7 @@ def analyse_loglike_poisson(test_data, mods):
 def analyse_loglike_zero_inf(test_data, mods):
     mods.compute_log_likelihood(test_data, 'ZI')
     r = np.argmax(np.array(mods.loglike), axis=0)
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     for i in np.unique(r):
         print(means[r == i].max())
     plt.hist(r, bins=np.arange(-0.5, len(mods.names) + 1, 1))
@@ -418,7 +419,7 @@ def analyse_loglike_zero_inf(test_data, mods):
 def analyse_loglike_NB(test_data, mods):
     mods.compute_log_likelihood(test_data, 'NB')
     r = np.argmax(np.array(mods.loglikeNB), axis=0)
-    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD(None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     for i in np.unique(r):
         print(means[r == i].max())
     plt.hist(r, bins=np.arange(-0.5, len(mods.names) + 1, 1))
@@ -440,7 +441,9 @@ def compute_measures(test_data, mods, path='', station=None):
     if 'time' in measures:
         tt = True
     else : tt = False
-    err = mods.compute_err_svdevol(test_data, measures, station=station)
+    # mods = EvaluatesModels(training_data, pred_algos, red_algos, red_dim, hparam['is_combined'], **hparam)
+    # err = mods.compute_err_svdevol(test_data, measures, station=station)
+    err = mods.compute_err(test_data, measures, station=station)
     if tt:
         measures.append('train_time')
         measures.append('test_time')
@@ -465,7 +468,7 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
         'decor': False,
         'hours': [],
         'log': False,
-        'is_combined': 3,
+        'is_combined': 3, #?????? 
         'red': {},
         'pred': {}
     }
@@ -475,7 +478,7 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
     # pred_algos = p
     # red_algos = s
 
-    percentile = 0.05
+    percentile = 0.05 ### ???????????????????????????????
     # mods = EvaluatesModels(training_data, pred_algos, red_algos, red_dim, False, **hparam)
     # mods.names = [str(mods.algo[i][0]) + ' ' + str(mods.algo[i][1]) for i in range(len(mods.algo))]
     # build_combined_model_rmse(training_data.get_partialdata_per(0.3,0.6), mods, pred_algos, red_algos)
@@ -497,7 +500,7 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
 
         return compute_measures(test_data, mods, path=str(hparam['log']) + str(hparam['decor']) + str(
             hparam['mean']) + training_data.env.system, station=[])
-    m = test_data.get_miniOD([])[test_data.get_stations_col()].mean().as_matrix()
+    m = test_data.get_miniOD([])[test_data.get_stations_col()].mean().to_numpy()
     for station in stations:
         if df is None:
             df = compute_measures(test_data, mods, path=str(hparam['log']) + str(hparam['decor']) + str(
@@ -522,11 +525,11 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
     # plt.title('mae')
     # for i in range(len(mods.rmse)):
     #     print(str(mods.algo[i][0]) + ' ' + str(mods.algo[i][1]))
-    #     print('mae', mods.mae[i].as_matrix().mean())
+    #     print('mae', mods.mae[i].to_numpy().mean())
     #     print('mae_3h', mods.mae_3h[i].mean())
-    #     print('rmse', mods.rmse[i].as_matrix().mean())
+    #     print('rmse', mods.rmse[i].to_numpy().mean())
     #     print('rmse 3h', mods.rmse_3h[i].mean())
-    #     print('rmse_var', mods.rmse_var[i].as_matrix().mean())
+    #     print('rmse_var', mods.rmse_var[i].to_numpy().mean())
     #     sns.kdeplot(mods.mae[i], c='r', label='mae')
     #     sns.kdeplot(mods.mae_3h[i], c='b', label='mae_3h')
     #     sns.kdeplot(mods.rmse[i], c='g', label='rmse')
@@ -570,11 +573,11 @@ def plot_one_day(data_train, data_test, pred_algo, red_algo, is_model_station=Tr
         mod.save()
     p = pd.DataFrame(mod.predict(data), columns=data_train.get_stations_col(), index=data.index)
     diff = data[data_train.get_stations_col()] - p[data_train.get_stations_col()]
-    sns.kdeplot(diff.as_matrix().flatten())
+    sns.kdeplot(diff.to_numpy().flatten())
     plt.show()
-    # print(diff.as_matrix().mean())
-    diff_dep = normalize(diff[data_train.get_dep_cols(None)].as_matrix())
-    diff_arr = normalize(diff[data_train.get_arr_cols(None)].as_matrix())
+    # print(diff.to_numpy().mean())
+    diff_dep = normalize(diff[data_train.get_dep_cols(None)].to_numpy())
+    diff_arr = normalize(diff[data_train.get_arr_cols(None)].to_numpy())
 
     loc = data_train.get_stations_loc()
     cmap = cm.jet
@@ -668,8 +671,6 @@ def residual_plots(test_data, mods, station=None, squared=False):
 
 
 if __name__ == '__main__':
-    # recompute_all_files('train')
-    # recompute_all_files('test')
     data_train = Data(Environment('Bixi', 'train')).get_partialdata_per(0, 0.8)
     # print(data_train.miniOD.shape)
     data_test = Data(Environment('Bixi', 'train')).get_partialdata_per(0.8, 1) 
@@ -733,10 +734,12 @@ if __name__ == '__main__':
         'obj': 'mse',
         'hours': [],
         'decor': False,
+        'n_week':4,
         'is_combined': 0,
     }
     with tf.device('/cpu:0'):
         # compare_model(data_train, data_test, pred, red, red_dim, stations=['Start date 6221', 'End date 6307', 'End date 5005'], **hparam)
         compare_model(data_train, data_test, pred, red, red_dim, stations=[], **hparam)
         # complete_analysis(data_train, data_test, load=False, norm=False)
+        # complete_analysis(data_train, data_test, red_dim)
         # plot_one_day(data_train, data_test, pred[0], red[0], load=True)

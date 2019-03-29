@@ -52,12 +52,12 @@ def significativity(test_data, station=None):
     for h in range(24):
         l.remove('h' + str(h))
     pca = PCA()
-    sum = data[l].as_matrix().sum(axis=0)
-    p = pca.fit_transform(data[l].as_matrix() / sum)
+    sum = data[l].to_numpy().sum(axis=0)
+    p = pca.fit_transform(data[l].to_numpy() / sum)
     p = pd.DataFrame(p)
     p = data[l] / sum
     p['intercept'] = 1
-    y = data['End date'].as_matrix().flatten()
+    y = data['End date'].to_numpy().flatten()
     from statsmodels.regression.linear_model import OLS
     x = p
     x = x.astype(float)
@@ -98,7 +98,7 @@ def chose_model(test_data):
         mod.secondPredictor = pr.get_prediction(a)(dim=len(train.get_stations_col(2015)), **d[a])
         mod.train_variance(train)
         var = mod.variance(test)
-        print(a, rmse(e.as_matrix(), var))
+        print(a, rmse(e.to_numpy(), var))
 
 
 def grid_search_dt(test_data):  # best sol depth 17, min_sample 80
@@ -118,7 +118,7 @@ def grid_search_dt(test_data):  # best sol depth 17, min_sample 80
             mod.secondPredictor = pr.get_prediction('decisiontree')(dim=len(train.get_stations_col(2015)), **d)
             mod.train_variance(train)
             var = mod.variance(test)
-            r = rmse(e.as_matrix(), var)
+            r = rmse(e.to_numpy(), var)
             print((m, depth), r)
             if r < rmin:
                 rmin = r
@@ -134,13 +134,13 @@ def estimateur_sans_biais(test_data):
     WH = mod.get_factors(train)
     res = mod.predict(WH)
     e = (maxi(res, 0.01) - mod.get_objectives(train)) ** 2
-    v = e.as_matrix().sum() / (e.shape[0] * e.shape[1] - 1)
+    v = e.to_numpy().sum() / (e.shape[0] * e.shape[1] - 1)
     print(v)
 
     WH = mod.get_factors(test)
     res = mod.predict(WH)
     e = ((maxi(res, 0.01) - mod.get_objectives(test)) ** 2) - v
-    print(rmse(v, e.as_matrix()))
+    print(rmse(v, e.to_numpy()))
 
 
 def grid_search_ridge(test_data):  # best sol
@@ -150,7 +150,7 @@ def grid_search_ridge(test_data):  # best sol
     mod.load_or_train(train)
     WH = mod.get_factors(test)
     res = mod.reduce.inv_transform(mod.meanPredictor.predict(WH))
-    e = ((maxi(res, 0.01) - mod.get_objectives(test)) ** 2).as_matrix()
+    e = ((maxi(res, 0.01) - mod.get_objectives(test)) ** 2).to_numpy()
     rmin = 20
     # for alpha in np.logspace(-10, 8, 50):
     for alpha in np.linspace(100, 500, 50):
@@ -189,7 +189,7 @@ def grid_search_gbt(test_data):  # best sol (8, 0.1, 3)
                 mod.secondPredictor = pr.get_prediction('gbt')(dim=len(train.get_stations_col(2015)), **hparam)
                 mod.train_variance(train)
                 var = mod.variance(test)
-                r = rmse(e.as_matrix(), var)
+                r = rmse(e.to_numpy(), var)
                 print((n_estim, lr, md), r, amin, rmin)
                 if r < rmin:
                     rmin = r
@@ -218,7 +218,7 @@ def grid_search_rf(test_data):  # best sol (20, 35, 11)
                 mod.secondPredictor = pr.get_prediction('randforest')(dim=len(train.get_stations_col(2015)), **hparam)
                 mod.train_variance(train)
                 var = mod.variance(test)
-                r = rmse(e.as_matrix(), var)
+                r = rmse(e.to_numpy(), var)
                 print((n_estim, m, md), r, amin, rmin)
                 if r < rmin:
                     rmin = r

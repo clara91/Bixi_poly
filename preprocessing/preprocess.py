@@ -143,12 +143,13 @@ def compute_features(env, save=True):
     ##########################################
     ##       cast string to numbers         ##
     ##########################################
-
+    #print("1")
     for c in ['temp', 'visi', 'pression']:
         r[c] = r[c].apply(lambda x: float(str(x).replace(',', '.')))
     r.loc[r['pression'] == 0, 'pression'] = np.nan
 
     r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].to_numpy())
+    #print("2")
     ##########################################
     ##       compute time features          ##
     ##########################################
@@ -157,6 +158,7 @@ def compute_features(env, save=True):
     r['Jour'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).day)
     r['wday'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).weekday())
     r['Heure'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).hour)
+    #print("3")
     ##########################################
     ##    chargement des jours feries       ##
     ##########################################
@@ -171,6 +173,7 @@ def compute_features(env, save=True):
     ####################################################
     ##  transformation du temps n colonnes binaires   ##
     ####################################################
+    #print("4")
     champs = env.weather_fields
     for ch in champs.keys():
         def f(x):

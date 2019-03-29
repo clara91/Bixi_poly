@@ -87,16 +87,16 @@ def rmsle(y_real, y_pred, v=None,axis=None):
 
 def deviation(y_real,y_pred,v=None,axis=None):
     if isinstance(y_pred, DataFrame):
-        y_pred = y_pred.as_matrix()
+        y_pred = y_pred.to_numpy()
     if isinstance(y_real, DataFrame):
-        y_real = y_real.as_matrix()
+        y_real = y_real.to_numpy()
     return (y_real - y_pred).mean(axis=axis)
 
 def r_squared(y_real, y_pred,v=None, axis=None):
     if isinstance(y_pred, DataFrame):
-        y_pred = y_pred.as_matrix()
+        y_pred = y_pred.to_numpy()
     if isinstance(y_real, DataFrame):
-        y_real = y_real.as_matrix()
+        y_real = y_real.to_numpy()
     y_bar = y_real.mean()
     SS_tot = ((y_real - y_bar) ** 2).sum(axis=axis)
     # SS_reg = ((y_pred - y_bar) ** 2).sum(axis=axis)
@@ -137,7 +137,7 @@ def mae(y_real, y_pred, v=None, axis=None):
 
 def transform(y, k):
     if isinstance(y, DataFrame):
-        y = y.as_matrix()
+        y = y.to_numpy()
     if (len(y.shape)) == 2:
         res = np.zeros((y.shape[0] - k + 1, y.shape[1]))
         for i in range(k):
@@ -184,7 +184,7 @@ def rmsGammaE(y_real, y_pred, axis=None, gamma=0.5):
 
     def transform(y):
         if isinstance(y, DataFrame):
-            y = y.as_matrix()
+            y = y.to_numpy()
         if (len(y.shape)) == 2:
             res = np.zeros((y.shape[0] - (2 * k + 1) + 1, y.shape[1]))
             for i in range(2 * k + 1):
@@ -203,9 +203,9 @@ def rmsGammaE(y_real, y_pred, axis=None, gamma=0.5):
 
 def err_(y_real, y_pred):
     if isinstance(y_pred, DataFrame):
-        y_pred = y_pred.as_matrix()
+        y_pred = y_pred.to_numpy()
     if isinstance(y_real, DataFrame):
-        y_real = y_real.as_matrix()
+        y_real = y_real.to_numpy()
     return np.array(rmsle(y_real, y_pred), rmse(y_real, y_pred), mae(y_real, y_pred), rmse_per(y_real, y_pred),
                     r_squared(y_real, y_pred))
 

@@ -163,7 +163,7 @@ def analyse_loglike(test_data, mods):
     print('mean_best', np.mean(np.ma.masked_invalid(LL[r1, range(LL.shape[1])])))
     mx = np.max(LL, axis=0)
     LL = LL / mx
-    means = test_data.get_miniOD([],None)[test_data.get_stations_col(None)].as_matrix()[:,b].mean(axis=0)
+    means = test_data.get_miniOD([],None)[test_data.get_stations_col(None)].to_numpy()[:,b].mean(axis=0)
     # for i in np.unique(r):
     #     print(means[r == i].max())
     print('mean NB', means[r1 < loglikeNB.shape[0]].mean())
@@ -246,7 +246,7 @@ def analyse_loglike_distrib(test_data, mods, distrib):
     ll = mods.compute_log_likelihood(test_data, distrib, axis=0)
     joblib.dump(ll, root_path + '/LL_' + distrib)
     r = np.argmax(np.array(ll), axis=0)
-    means = test_data.get_miniOD([],None)[test_data.get_stations_col(None)].mean(axis=0).as_matrix()
+    means = test_data.get_miniOD([],None)[test_data.get_stations_col(None)].mean(axis=0).to_numpy()
     for i in np.unique(r):
         print(means[r == i].max())
     plt.hist(r, bins=np.arange(-0.5, len(mods.names), 1))

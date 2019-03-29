@@ -1,4 +1,4 @@
-import pandas as pd
+simport pandas as pd
 import matplotlib.pyplot as plt
 from config import root_path
 import numpy as np
@@ -54,7 +54,7 @@ def week():
     p2 = mod2.predict(test)
     p3 = mod3.predict(test)
     p4 = mod4.predict(test)
-    real = test.get_miniOD([])[test.get_stations_col()].as_matrix()
+    real = test.get_miniOD([])[test.get_stations_col()].to_numpy()
 
     while True:
         s=np.random.randint(0,900)

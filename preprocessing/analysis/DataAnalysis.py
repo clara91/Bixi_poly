@@ -42,12 +42,12 @@ class DataAnlysis(Data):
         data = self.get_miniOD([])
         arr = self.get_arr_cols(None)
         dep = self.get_dep_cols(None)
-        narr = data[arr].as_matrix().sum()
-        ndep = data[arr].as_matrix().sum()
+        narr = data[arr].to_numpy().sum()
+        ndep = data[arr].to_numpy().sum()
         # print(narr)
         # print(ndep)
         # print(ndep - narr)
-        # print(np.abs((data[arr].as_matrix() - data[dep].as_matrix())).mean())
+        # print(np.abs((data[arr].to_numpy() - data[dep].to_numpy())).mean())
         # d = data['End date']-data['Start date']
         # print(data['End date'].mean())
         # print(d.mean())
@@ -156,7 +156,7 @@ class DataAnlysis(Data):
                       ttest_ind(data['Start date'][d], data['Start date'][1 - d]))
         for ch in multi_var:
             print(ch)
-            u = np.unique(data[ch].as_matrix())
+            u = np.unique(data[ch].to_numpy())
             for i in u:
                 d = data[ch] == i
                 print(ttest_ind(data['End date'][d], data['End date'][1 - d]),
@@ -282,8 +282,8 @@ class DataAnlysis(Data):
         print(m.columns.values)
         plot_corr(m)
         from statsmodels.regression.linear_model import OLS
-        y = m['End date'].as_matrix()
-        x = m.drop(['End date', 'Start date'], axis=1).as_matrix()
+        y = m['End date'].to_numpy()
+        x = m.drop(['End date', 'Start date'], axis=1).to_numpy()
         x = x.astype(int)
         lin = OLS(y, x)
         res = lin.fit()
@@ -342,10 +342,10 @@ class DataAnlysis(Data):
         i = int(data.shape[0] * 0.8)
         train = data[:i]
         test = data[i:]
-        sum = train[l].as_matrix().sum(axis=0)
+        sum = train[l].to_numpy().sum(axis=0)
         co = []
         pca = PCA()
-        # pca.fit(train[l].as_matrix() / sum)
+        # pca.fit(train[l].to_numpy() / sum)
         # comp = pca.components_
         # print(comp.shape)
         # for n in range(1, 200):
@@ -356,10 +356,10 @@ class DataAnlysis(Data):
         #     m = np.round(m)
         #     m /= n
         #     pca.components_ = m
-        #     # p = pca.fit_transform(data[l].as_matrix() / sum)
-        #     p = pca.transform(test[l].as_matrix() / sum)
+        #     # p = pca.fit_transform(data[l].to_numpy() / sum)
+        #     p = pca.transform(test[l].to_numpy() / sum)
         #     p = pd.DataFrame(p, columns=l)
-        #     corr = p.corr().as_matrix()
+        #     corr = p.corr().to_numpy()
         #     # corr = corr[1-np.isnan(corr)]
         #     c = np.nansum(np.abs(corr))
         #
@@ -369,25 +369,25 @@ class DataAnlysis(Data):
         # plt.plot(co)
         # plt.show()
         n=18
-        pca.fit(data[l].as_matrix() / sum)
+        pca.fit(data[l].to_numpy() / sum)
         m = pca.components_
         m *= n
         m = np.round(m)
         m /= n
         pca.components_ = m
-        # p = pca.fit_transform(data[l].as_matrix() / sum)
-        p = pca.transform(data[l].as_matrix() / sum)
+        # p = pca.fit_transform(data[l].to_numpy() / sum)
+        p = pca.transform(data[l].to_numpy() / sum)
         p = pd.DataFrame(p)
         # p = data[l] / sum
         # print(pca.components_)
         p['intercept'] = 1
         # print(formula)
-        y = data['ch'].as_matrix().flatten()
-        # x = data[l].as_matrix().astype(float)
+        y = data['ch'].to_numpy().flatten()
+        # x = data[l].to_numpy().astype(float)
         # ls = ols(formula, data).fit()
 
         from statsmodels.regression.linear_model import OLS
-        # y = m['End date'].as_matrix()
+        # y = m['End date'].to_numpy()
         x = p
         x = x.astype(float)
         lin = OLS(y, x)

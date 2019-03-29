@@ -88,7 +88,7 @@ class Data(object):
         return self.stations.get_loc()
 
     def towindow_features(self, miniOD, hours):
-        print(miniOD.columns.values)
+        #print(miniOD.columns.values)
         col = np.intersect1d(miniOD.columns.values, self.meteo) #Find the intersection of two arrays.
 
         #miniOD = miniOD.sort_values(by='pdy timestamp')
