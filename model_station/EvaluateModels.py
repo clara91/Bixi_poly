@@ -8,15 +8,15 @@ import pandas as pd
 import seaborn as sns
 import tensorflow as tf
 import sys
+#print(sys.path)
+sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
+
 from utils.modelUtils import normalize
 from config import root_path
 from model_station.CombinedModelStation import CombinedModelStation
 from model_station.evaluate1model import EvaluateModel
 from preprocessing.Data import Data
 from preprocessing.Environment import Environment
-
-#print(sys.path)
-sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
 
 
 class EvaluatesModels(object):
@@ -28,8 +28,8 @@ class EvaluatesModels(object):
             'norm': False,              #normalize objectives
             'load': True,               #load model
             'hours': [],                #hours to consider as features
-            'var': False,                #learn a variance predictor
-            'zero_prob': False,          #learn a predictor that estimate the 0 probability
+            'var':False,                #learn a variance predictor
+            'zero_prob':False,          #learn a predictor that estimate the 0 probability
             'log': False,               #log transform the objectives
             'mean': False,              #
             'red': {},                  #reduction hparam
@@ -44,10 +44,12 @@ class EvaluatesModels(object):
             pred_algos = pred_algos * (len(red_algos))
         if len(red_algos) == 1:
             red_algos = red_algos * (len(pred_algos))
+
         self.algo = list(zip(red_algos, pred_algos))
         learned_red = []
-        self.hparam['is_combined'] = False
+        self.hparam['is_combined'] = False 
         self.training_times = {}
+
         for red, pred in self.algo:
             if red in learned_red:
                 self.hparam['load_red'] = True
@@ -61,7 +63,7 @@ class EvaluatesModels(object):
             start = time.time()
             if self.hparam['load']:
                 # pass
-                em.mod.load_or_train(training_data)
+                em.mod.load_or_train(training_data) #ModelGlobal does not have those method
                 em.mod.reset()
             else:
                 em.mod.train(data=training_data, **self.hparam)
@@ -84,6 +86,7 @@ class EvaluatesModels(object):
             mod.save()
 
     def compute_err(self, test_data, err: list, station=None, axis=None):
+        #mods.compute_err(test_data, measures, station=station)
         times = False
         if 'time' in err:
             times = True
@@ -93,6 +96,7 @@ class EvaluatesModels(object):
             for i in range(1, len(s1)):
                 s += (i,)
         else:
+
             s = self.models[0].compute_errors(test_data, err, station=station, axis=axis).shape
         s = (len(self.models),) + s
         error = np.zeros(s)
@@ -112,6 +116,8 @@ class EvaluatesModels(object):
             else:
                 error[i] = res
         return error
+
+
 
     def compute_err_svdevol(self, test_data, err: list, max_week=10, station=None, axis=None):
         e =None
@@ -433,6 +439,8 @@ def analyse_loglike_NB(test_data, mods):
 
 
 def compute_measures(test_data, mods, path='', station=None):
+# mods = EvaluatesModels(training_data, pred_algos, red_algos, red_dim, hparam['is_combined'], **hparam)    
+# compute_measures(test_data, mods, path=str(hparam['log']) + str(hparam['decor']) + str(hparam['mean']) + training_data.env.system, station=[])
     measures = ['rmsle', 'rmse', 'mae', 'rmse_norm', 'r2',
                 # 'llP',
                 # 'llZI',
@@ -473,22 +481,26 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
         'red': {},
         'pred': {}
     }
+    
     hparam.update(kwargs)
     # p = pred_algos * len(red_algos)
     # s = [t for t in red_algos for _ in pred_algos]
     # pred_algos = p
     # red_algos = s
-
+    
     percentile = 0.05 ### ???????????????????????????????
     # mods = EvaluatesModels(training_data, pred_algos, red_algos, red_dim, False, **hparam)
     # mods.names = [str(mods.algo[i][0]) + ' ' + str(mods.algo[i][1]) for i in range(len(mods.algo))]
     # build_combined_model_rmse(training_data.get_partialdata_per(0.3,0.6), mods, pred_algos, red_algos)
+
     mods = EvaluatesModels(training_data, pred_algos, red_algos, red_dim, hparam['is_combined'], **hparam)
     # mods.models[0].train(data_train)
     # mods.models[0].mod.save()
-    print(mods.algo)
+    
     mods.names = [str(mods.algo[i][0]) + ' ' + str(mods.algo[i][1]) for i in range(len(mods.algo))]
     colors = [cm.jet(i) for i in np.linspace(0, 1, max(5, max(len(pred_algos), len(red_algos))))]
+    
+    ##################################################################################################3
     # plot_residuals(test_data, mods)
     # analyse_loglike_zero_inf(test_data, mods)
     # analyse_loglike_NB(training_data, mods)
@@ -496,12 +508,15 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
     # err_vs_time(test_data,mods,['mape','llP','rmse','rmsle','r2'])
     # stations = [test_data.get_stations_col().index(i) if isinstance(i, str) else i for i in stations]
     # mods.plot_station(training_data,test_data, stations)
+
+    ####################################################################################################333
     df = None
     if not stations:
-
+        #print("opa")
         return compute_measures(test_data, mods, path=str(hparam['log']) + str(hparam['decor']) + str(
             hparam['mean']) + training_data.env.system, station=[])
     m = test_data.get_miniOD([])[test_data.get_stations_col()].mean().to_numpy()
+     
     for station in stations:
         if df is None:
             df = compute_measures(test_data, mods, path=str(hparam['log']) + str(hparam['decor']) + str(
@@ -516,13 +531,16 @@ def compare_model(training_data, test_data, pred_algos, red_algos, red_dim, stat
             d['algo'] = mods.names
             d['station'] = test_data.get_stations_col()[station]
             d['size'] = m[station]
-            df = df.append(d, ignore_index=True)
-    return df
+            df = df.append(d, ignore_index=True, sort = True) # add a new parameters
+    
+    #################################################################
     # analyse_loglike_poisson(test_data, mods)
     # analyse_loglike(test_data, mods)
     # r_squared_analysis(test_data, mods)
     # r_squared_analysis(training_data, mods)
-
+    ##############################################################3
+    return df
+     
     # plt.title('mae')
     # for i in range(len(mods.rmse)):
     #     print(str(mods.algo[i][0]) + ' ' + str(mods.algo[i][1]))
@@ -672,9 +690,12 @@ def residual_plots(test_data, mods, station=None, squared=False):
 
 
 if __name__ == '__main__':
+    # recompute_all_files('train')
+    # recompute_all_files('test')
     data_train = Data(Environment('Bixi', 'train')).get_partialdata_per(0, 0.8)
     # print(data_train.miniOD.shape)
     data_test = Data(Environment('Bixi', 'train')).get_partialdata_per(0.8, 1) 
+    #print(data_test)
     # print(data_test.miniOD.shape)
     red_dim = {
         'svd': 10,
@@ -696,7 +717,7 @@ if __name__ == '__main__':
         'svd',
         # 'pca',
         # 'id',
-        # 'sum',
+        #'sum',
         'kmeans',
         # 'average',
         # 'complete',
@@ -731,17 +752,16 @@ if __name__ == '__main__':
         'is_model_station': True,
         'log': False,
         'mean': False,
-        'load': False,
+        'load': False, #?s
         'obj': 'mse',
         'hours': [],
         'decor': False,
         'n_week':4,
-        'n_week': 4,
         'is_combined': 0,
     }
     with tf.device('/cpu:0'):
-        # compare_model(data_train, data_test, pred, red, red_dim, stations=['Start date 6221', 'End date 6307', 'End date 5005'], **hparam)
-        compare_model(data_train, data_test, pred, red, red_dim, stations=[], **hparam)
+        compare_model(data_train, data_test, pred, red, red_dim, stations=['Start date 6221', 'End date 6307', 'End date 5005'], **hparam)
+        #compare_model(data_train, data_test, pred, red, red_dim, stations=[], **hparam)
         # complete_analysis(data_train, data_test, load=False, norm=False)
         # complete_analysis(data_train, data_test, red_dim)
         # plot_one_day(data_train, data_test, pred[0], red[0], load=True)

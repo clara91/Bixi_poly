@@ -29,7 +29,7 @@ class ModelStations(object):
         }
         self.dim =  dim
         self.hparam.update(kwargs)
-        print(reduction_method, prediction_method)
+        #print(reduction_method, prediction_method)
         self.env = env
         self.hours = self.hparam['hours']
         self.load_red = self.hparam['load_red']
@@ -51,6 +51,7 @@ class ModelStations(object):
         starttime = time.time()
         learn = data
         if self.load_red:
+            
             try:
                 self.reduce.load(add_path=self.env.system)
             except (FileNotFoundError, OSError):
@@ -58,18 +59,19 @@ class ModelStations(object):
                 type(self.reduce).train(self.reduce, learn, **self.hparam['red'])
                 type(self.reduce).save(self.reduce,add_path=self.env.system)
         else:
+            print("Load ", self.reduce)
             type(self.reduce).train(self.reduce, learn, **self.hparam['red'])
-            print(self.env.system)
+            #print(self.env.system)
             type(self.reduce).save(self.reduce, add_path=self.env.system)
         x = self.reduce
-
         learn2 = type(x).transform(x, learn)
 
         if self.hparam['decor']:
             WH = self.get_decor_factors(learn)
         else:
             WH = self.get_factors(learn)
-
+        #print(WH)
+        
         if self.hours != []:
             learn2 = learn2[np.max(self.hours):]
         self.meanPredictor.train(WH, y=learn2, **self.hparam['pred'])
@@ -215,13 +217,13 @@ class ModelStations(object):
     def load(self):
         self.reduce.load(add_path=self.env.system)
         self.meanPredictor.load(add_path=self.reduce.algo + self.env.system)
-        if self.hparam['decor']:
+        if self.hparam['decor']: #False
             self.featurePCA = joblib.load(config.root_path+'featurePCA')
             self.sum = np.load(config.root_path+'norm_features_var.npy')
             self.mean = np.load(config.root_path+'norm_features_mean.npy')
-        if self.hparam['var']:
+        if self.hparam['var']:  #False
             self.secondPredictor.load(add_path=self.reduce.algo + self.meanPredictor.algo + self.env.system)
-        if self.hparam['zero_prob']:
+        if self.hparam['zero_prob']: #False
             self.secondPredictor.load(add_path=self.reduce.algo + self.meanPredictor.algo + self.env.system)
         try:
             self.hours = self.reduce.hours
@@ -240,8 +242,10 @@ class ModelStations(object):
     def load_or_train(self, data, **kwargs):
         self.hparam.update(kwargs)
         try:
+            #print("teste1")
             self.load()
         except (IOError,EOFError):
+            #print("teste2")
             self.train(data, **self.hparam['pred'])
             self.save()
 
