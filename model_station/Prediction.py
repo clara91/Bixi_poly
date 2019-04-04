@@ -1363,7 +1363,12 @@ class RandForest(Prediction):
     def load(self, add_path=''):
         self.location = loc(self, add_path)
         file = open(self.location, 'rb')
+        #C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/model_station/prediction_models/gbt10svdBixi
+        #print('file')
+        #print(file.read())
         l = pickle.load(file)
+        #print('file')
+        #print(l.read())
         file.close()
         self.RF = l.RF
         self.dim = l.dim

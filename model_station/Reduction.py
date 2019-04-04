@@ -20,6 +20,7 @@ def loc(self, add_path=''):
     :param add_path: complementary path
     :return: path (string)
     """
+
     directory = 'model_station/'
     dim_red = 'dim_red/'
     OD = 'OD/'
@@ -67,6 +68,7 @@ class Reduction(object):
             """
         # raise NotImplementedError('train not Implemented')
         self.location = loc(self, add_path)
+        #C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/model_station/dim_red/svd10Bixi
         s = joblib.load(self.location)
         for attr in dir(s):
             if not '__' in attr:
@@ -119,7 +121,6 @@ class Reduction(object):
     def reset(self):
         raise NotImplementedError('reset Not Implemented')
 
-
 class DimRed(Reduction):
     def __init__(self, env, log=False, mean=False, *args):
         super(DimRed, self).__init__(env, log=log, mean=mean)
@@ -127,8 +128,6 @@ class DimRed(Reduction):
 
     def reset(self):
         del self.model
-
-
 
 class DimRedSum(DimRed):
     def __init__(self, env, dim=20, log=False, mean=False, *args):
@@ -162,7 +161,6 @@ class DimRedSum(DimRed):
             res = np.exp(res)
         return res
 
-
 class DimRedIdentity(DimRed):
     def __init__(self, env, dim=20, log=False, mean=False, *args):
         super(DimRedIdentity, self).__init__(env, log=log, mean=mean)
@@ -191,7 +189,6 @@ class DimRedIdentity(DimRed):
             return np.exp(y)
         else:
             return y
-
 
 class DimRedDepArr(DimRed):
     def __init__(self, env, dim=2, log=False, mean=False, *args):
@@ -237,7 +234,6 @@ class DimRedDepArr(DimRed):
             res = np.exp(res)
         return res
 
-
 class DimRedPCA(DimRed):
     def __init__(self, env, dim=10, log=False, mean=False, *args):
         super(DimRedPCA, self).__init__(env, log=log, mean=mean)
@@ -275,7 +271,6 @@ class DimRedPCA(DimRed):
 
     def reset(self):
         del self.model
-
 
 class DimRedPCAKernel(DimRed):
     def __init__(self, env, dim=10, log=False, mean=False, **kwargs):
@@ -327,7 +322,6 @@ class DimRedPCAKernel(DimRed):
         # del self.mean
         # del self.var
         del self.model
-
 
 class DimRedSVD(DimRed):
     def __init__(self, env, dim=10, log=False, mean=False, *args):
@@ -399,8 +393,6 @@ class DimRedEvolvingSVD(DimRedSVD):
         if self.log:
             res = np.exp(res)
         return res
-
-
 
 class DimRedAutoEncoder(DimRed):
     def __init__(self, env, dim=10, log=False, mean=False, **kwargs):
@@ -580,7 +572,6 @@ class DimRedAutoEncoder(DimRed):
             res = np.exp(res)
         return res
 
-
 class VariationalAutoEncoder(DimRedAutoEncoder):
     def __init__(self, env, dim=10, log=False, mean=False, *args):
         super(VariationalAutoEncoder, self).__init__(env, dim, log=log, mean=mean, *args)
@@ -653,7 +644,6 @@ class VariationalAutoEncoder(DimRedAutoEncoder):
         obj = losses.mean_squared_error
         opt = keras.optimizers.adadelta()
         self.model.model.compile(optimizer=opt, loss=obj, metrics=['mae', 'mse'])
-
 
 class Clustering(Reduction):
     def __init__(self, env, log=False, mean=False, dim=10):
@@ -763,7 +753,6 @@ class Clustering(Reduction):
         # self.norm = s.norm
         # self.labels = s.labels
 
-
 class ClusteringKmeans(Clustering):
     def __init__(self, env, dim=10, mean=False, log=False):
         super(ClusteringKmeans, self).__init__(env, dim=dim, log=log, mean=mean)
@@ -778,7 +767,6 @@ class ClusteringKmeans(Clustering):
         self.labels = km.labels_
         self.post_train(data)
 
-
 class RandomClustering(Clustering):
     def __init__(self, env, dim=10, mean=False, log=False):
         super(RandomClustering, self).__init__(env, dim=dim, log=log, mean=mean)
@@ -789,7 +777,6 @@ class RandomClustering(Clustering):
         learn = self.pre_train(data)
         self.labels = np.random.randint(0, self.dim, len(self.preselect))
         self.post_train(data)
-
 
 class ClusteringHierarchy(Clustering):
     def __init__(self, env, algo, log=False, mean=False, load=True, dim=10):
@@ -1017,7 +1004,7 @@ algorithms ={
     'svd':DimRedSVD,
     'svdevol':DimRedEvolvingSVD,
     'pca':DimRedPCA,
-    # 'kpca':DimRedPCAKernel,
+    'kpca':DimRedPCAKernel,
     'sum':DimRedSum,
     'kmeans':ClusteringKmeans,
     'average':ClusteringAverage,

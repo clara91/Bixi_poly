@@ -4,7 +4,7 @@ import pandas as pd
 
 class Stations(object):
     def __init__(self, env, since=2015):
-        self.s = pd.read_csv(open(env.station_info), delimiter=',')
+        self.s = pd.read_csv(env.station_info, delimiter=',',encoding = "ISO-8859-1")
         self.s.sort_values(['since', 'code'], axis=0, inplace=True)
         self.s = self.s.loc[self.s['used'] == 1, :]
         self.s['pk'].astype(int, inplace=True)

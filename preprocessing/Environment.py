@@ -138,8 +138,8 @@ class Environment(object):
         nb = ['31', '29', '31', '30', '31', '30', '31', '31', '30', '31', '30', '31']
         files = {
             2015: [],
-            2016: []
-            #2017: []
+            2016: [],
+            2017: []
         }
         for y in list(files.keys()):
             if y % 4 != 0:
@@ -213,6 +213,7 @@ class Environment(object):
     def build_dummy_prevision(self, year=None, month=None, day=None):
         files = self.get_meteo_files()
         cols = pd.read_csv(self.precipitation_path + files[2016][0]).columns.values
+        #print(cols)
         if year is None or month is None or day is None:
             t = datetime.datetime.now()
         else:
@@ -230,6 +231,7 @@ class Environment(object):
             lambda x: str(x.year) + '-' + str(x.month).zfill(2) + '-' + str(x.day).zfill(2) + ' ' + str(
                 x.hour).zfill(2))
         df.to_csv(self.prevision_meteo, index=False)
+        #print(df)
 
 if __name__ == '__main__':
     ud = Environment('Bixi', 'release')

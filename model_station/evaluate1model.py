@@ -6,14 +6,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import norm, poisson, nbinom
-
+import sys
+#print(sys.path)
+sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
 import utils.modelUtils as utils
 from model_station.CombinedModelStation import CombinedModelStation
 from model_station.ModelGlobal import ModelGlobal
 from model_station.ModelStations import ModelStations
 
 
-# warnings.filterwarnings('error')
+warnings.filterwarnings('error')
 
 class EvaluateModel(object):
     def __init__(self, env, reduction_method, prediction_method, red_dim,
@@ -40,8 +42,7 @@ class EvaluateModel(object):
         if self.hparam['is_combined']:
             self.mod = CombinedModelStation(env, **self.hparam)
         elif self.hparam['is_model_station']:
-            self.mod = ModelStations(env, reduction_method, prediction_method, dim=red_dim,
-                                     **self.hparam)
+        	self.mod = ModelStations(env, reduction_method, prediction_method, dim=red_dim,**self.hparam)
         else:
             self.mod = ModelGlobal(env, reduction_method, prediction_method, **self.hparam)
         self.pred = None
