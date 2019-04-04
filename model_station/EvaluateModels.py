@@ -117,33 +117,24 @@ class EvaluatesModels(object):
         e =None
         k=0
         #print(self)
+        
         test_data = test_data.get_partialdata_n((max_week-self.hparam['n_week'])*168,-1)
         for i in range(0,int(test_data.get_miniOD([]).shape[0]-self.hparam['n_week']*168),24):
-        e = None
-        k = 0
-        test_data = test_data.get_partialdata_n(
-            (max_week - self.hparam['n_week']) * 168, - 1)
-        for i in range(0, int(test_data.get_miniOD([]).shape[0] - self.hparam['n_week'] * 168), 24):
             self.models[0].mod.load()
-            train = test_data.get_partialdata_n(
-                i, int(i + self.hparam['n_week'] * 168))
+            train=test_data.get_partialdata_n(i,int(i+self.hparam['n_week']*168))
             # n=1-(168*self.hparam['n_week'])/data.get_miniOD([]).shape[0]
             #self.models[0].mod.train_inv(train)
             data=test_data.get_partialdata_n(int(i+self.hparam['n_week']*168),int(i+self.hparam['n_week']*168)+24)
             res= self.compute_err(data,err,station,axis)
-
-            self.models[0].mod.train_inv(train)
-            data = test_data.get_partialdata_n(
-                int(i + self.hparam['n_week'] * 168), int(i + self.hparam['n_week'] * 168) + 24)
-            res = self.compute_err(data, err, station, axis)
-
-            k += 1
+            # print(err)
+            k+=1
             print(k)
             if e is None:
-                e = res
+                e=res
             else:
-                e += res
-        return e / k
+                e+=res
+        return e/k
+
 
     def compute_log_likelihood(self, test_data, distrib, station=None, axis=None):
         ll = []
@@ -454,9 +445,6 @@ def compute_measures(test_data, mods, path='', station=None):
     # mods = EvaluatesModels(training_data, pred_algos, red_algos, red_dim, hparam['is_combined'], **hparam)
     # err = mods.compute_err_svdevol(test_data, measures, station=station)
     err = mods.compute_err(test_data, measures, station=station)
-    else:
-        tt = False
-    err = mods.compute_err_svdevol(test_data, measures, station=station)
     if tt:
         measures.append('train_time')
         measures.append('test_time')
