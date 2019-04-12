@@ -59,7 +59,7 @@ class ModelStations(object):
                 type(self.reduce).train(self.reduce, learn, **self.hparam['red'])
                 type(self.reduce).save(self.reduce,add_path=self.env.system)
         else:
-            print("Load ", self.reduce)
+            #print("Load ", self.reduce)
             type(self.reduce).train(self.reduce, learn, **self.hparam['red'])
             #print(self.env.system)
             type(self.reduce).save(self.reduce, add_path=self.env.system)
@@ -139,9 +139,11 @@ class ModelStations(object):
 
     def get_factors(self, learn:(Data,pd.DataFrame)):
         if isinstance(learn, Data):
-            df = learn.get_miniOD(self.hours)
+        	df = learn.get_miniOD(self.hours)
         else:
             df = learn
+        #print("aqui")
+        #print(df.head())
         col = []
         for i in df.columns.values:
             for j in config.learning_var:
@@ -152,8 +154,20 @@ class ModelStations(object):
         # for i in col:
         #     if ' ind' in i or ' Indicateur'in i or 'Dir. ' in i:
         #         col.remove(i)
+        
+        #print(df['total'].head(100).unique())
         col = np.unique(col)
         return df[col]
+    def get_factors_database(self,learn:(Data,pd.DataFrame)):
+    	df = learn.get_miniOD_database(self.env,self.hours)
+    	col = []
+    	for i in df.columns.values:
+    		for j in config.learning_var:
+    			if j==i or j == i[:-1] or j == i[:-2]:
+    				col.append(i)
+    	col = np.unique(col)
+    	return df[col]
+    	#print(type(df))
 
     def get_var_factors(self, learn:[Data,pd.DataFrame]):
 
@@ -174,18 +188,27 @@ class ModelStations(object):
         return self.reduce.get_y(miniOD)
         # return miniOD[learn.get_stations_col(2015)]
 
-    def predict(self, x, t=False):
+    def predict(self, x, t=False, database = False):
         starttime = time.time()
-        if not isinstance(x,np.ndarray):  
+
+        if database == True:
+        	xt = self.get_factors_database(x)
+        elif not isinstance(x,np.ndarray):  
             if self.hparam['decor']:
                 xt = self.get_decor_factors(x)
             else:
-                xt = self.get_factors(x)
+            	xt = self.get_factors(x)
         else:
             xt=x
+        # print("informações importantes sobre xt")
+        # print(type(xt))
+        # print(len(list(xt)))
+        # print(list(xt))
+        # print(xt.head())
         pred1 = self.meanPredictor.predict(xt, )  # self.reduce.get_factors(x))
         pred = type(self.reduce).inv_transform(self.reduce, pred1)
         if t: print('prediction time', self.name, time.time() - starttime)
+
         return maxi(0.01, pred)
 
     def variance(self, x):

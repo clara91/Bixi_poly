@@ -75,12 +75,16 @@ class EvaluateModel(object):
         return self.pred - real
 
     def compute_err(self, x, fct, load=True, station=None, axis=None):
+        # compute_errors(test_data, err, station=station, axis=axis)
+        # fct = err = mesures
         if load: self.mod.load()
         # if self.pred is None:
-        self.pred = self.mod.predict(x)
+        self.pred = self.mod.predict(x,database = False)
+
         if self.var is None and self.hparam['zero_prob']:
             self.var = self.mod.zero_prob(x)
         if load: self.mod.reset()
+        #O problema esta acontecendo aqui!!!
         y = self.mod.get_y(x.get_miniOD(self.hparam['hours'])).to_numpy()
         if station:
             if self.var:

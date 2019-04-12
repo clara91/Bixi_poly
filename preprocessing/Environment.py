@@ -33,6 +33,8 @@ class Environment(object):
         self.trip_path = self.data_path + 'hitorique_deplacements/'
         # path to first trip aggregation
         self.off_days = self.data_path + "type_de_jour/jours_feries.csv"
+        self.off_days_update = self.data_path + "type_de_jour/holiday_days.csv"
+
         self.holidays = self.data_path + "type_de_jour/vacances.csv"
         self.trip_per_hour_start_path = self.aggregated + 'trip_per_hour_start.pdy'
         self.trip_per_hour_end_path = self.aggregated + 'trip_per_hour_end.pdy'
@@ -64,18 +66,19 @@ class Environment(object):
         self.prevision_meteo = self.data_path + 'prevision.csv'
         self.precipitation_date_format = '%Y-%m-%d %H'
         self.weather_fields = {
-            'averses': ['averses'],
-            'neige': ['neige'],
-            'pluie': ['pluie'],
-            'fort': ['fort'],
-            'modere': ['modere', 'modã©rã©e'],
-            'verglas': ['vergla'],
-            'bruine': ['bruine'],
-            'poudrerie': ['poudrerie', 'granules'],
-            'brouillard': ['brouillard', 'brume'],
-            'nuageux': ['nuageux'],
-            'orage': ['orage'],
-            'degage': ['degage', 'dã©gagã©'],
+            'averses': ['averses','rainshower showers'], #short period of rain
+            'neige': ['neige','snow','snowshower'], #snow
+            'pluie': ['pluie','rain'], #rain
+            'fort': ['fort','mainly','heavy'], #strong,heacy
+            'modere': ['modere', 'modã©rã©e','partly','mostly','light','moderate'], #moderate
+            'verglas': ['vergla','freezing rain'], #black ice
+            'bruine': ['bruine','drizzle'], #drizzle
+            'poudrerie': ['poudrerie', 'granules', 'ice'], #ice
+            'brouillard': ['brouillard', 'brume','mist','fog','smoke'], #fog
+            'nuageux': ['nuageux','cloudy'], #cloudy
+            'orage': ['orage','thunderstorms'], #thunderstorm
+            'degage': ['degage', 'dã©gagã©','sunny','clear'],
+
         }
 
     def load(self, path):

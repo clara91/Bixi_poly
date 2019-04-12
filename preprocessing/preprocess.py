@@ -143,13 +143,11 @@ def compute_features(env, save=True):
     ##########################################
     ##       cast string to numbers         ##
     ##########################################
-    #print("1")
     for c in ['temp', 'visi', 'pression']:
         r[c] = r[c].apply(lambda x: float(str(x).replace(',', '.')))
     r.loc[r['pression'] == 0, 'pression'] = np.nan
 
     r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].to_numpy())
-    #print("2")
     ##########################################
     ##       compute time features          ##
     ##########################################
@@ -158,7 +156,6 @@ def compute_features(env, save=True):
     r['Jour'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).day)
     r['wday'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).weekday())
     r['Heure'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).hour)
-    #print("3")
     ##########################################
     ##    chargement des jours feries       ##
     ##########################################
@@ -183,6 +180,8 @@ def compute_features(env, save=True):
             return r
 
         r[ch] = r['Temps'].apply(f)
+    print("rrrrrr44444444444444")
+    print(list(r))
     r['precip'] = r['pluie'] | r['neige'] | r['averses'] | r['orage']
     r['brr'] = r['brouillard'] | r['bruine']
     for h in range(24):
@@ -190,11 +189,14 @@ def compute_features(env, save=True):
     r['LV'] = (r['wday'] == 0) | (r['wday'] == 4)
     r['MMJ'] = (r['wday'] == 1) | (r['wday'] == 2) | (r['wday'] == 3)
     r['SD'] = (r['wday'] == 5) | (r['wday'] == 6)
+    print("rrrrrr55555555555555555")
+    print(list(r))
     if save:
         #print("########################################33aqui")
         #print(env.pre_per_hour_path)
 
         r.to_pickle(env.pre_per_hour_path)
+
     return r
 
 
@@ -263,7 +265,7 @@ def combine_merged_s(env, save=True, precipitation=None, tripdeparture=None, tri
         prec_per_h = env.load(env.pre_per_hour_path)
     else:
         prec_per_h = precipitation
-    if tripdeparture is None:
+    if tripdeparture is None: 
         trip_dep_h = env.load(env.data_dep_per_hour_per_station_path)
     else:
         trip_dep_h = tripdeparture
@@ -438,23 +440,23 @@ def recompute_all_files(system, name, save=True):
         env = Environment(system, name)
         # compute_features(env)
         # print('data per station')
-        compute_data_per_hour_per_station(env)
+        compute_data_per_hour_per_station(env) 
         # print('merge station')
         combine_merged_s(env)
-        return combine_lost_satisfied_demand(env,comb=False)
+        return combine_lost_satisfied_demand(env,comb=False) 
     else:
         env = Environment(system, name)
         precip = compute_features(env, save=True)
-        print('data per station')
-        dep, arr = compute_data_per_hour_per_station(env, save=True)
-        print('merge station')
-        merged = combine_merged_s(env, save=True, precipitation=precip, tripdeparture=dep,
-                                  triparrivals=arr)
-        return merged
+        # print('data per station')
+        # dep, arr = compute_data_per_hour_per_station(env, save=True)
+        # print('merge station')
+        # merged = combine_merged_s(env, save=True, precipitation=precip, tripdeparture=dep,
+        #                           triparrivals=arr)
+        # return merged
 
 if __name__ == '__main__':
-    recompute_all_files('Bixi','train')
-    recompute_all_files('Bixi','test')
+    recompute_all_files('Bixi','train',False)
+    recompute_all_files('Bixi','test',False)
     #recompute_all_files('citibike','train')
     #recompute_all_files('citibike','test')
     # recompute_all_files('capitalBS','train')

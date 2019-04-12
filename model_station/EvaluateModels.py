@@ -96,7 +96,6 @@ class EvaluatesModels(object):
             for i in range(1, len(s1)):
                 s += (i,)
         else:
-
             s = self.models[0].compute_errors(test_data, err, station=station, axis=axis).shape
         s = (len(self.models),) + s
         error = np.zeros(s)
@@ -578,7 +577,7 @@ def plot_one_day(data_train, data_test, pred_algo, red_algo, is_model_station=Tr
     # if (len(pred_algos) == 1):
     #     pred_algos = pred_algos * (len(red_algos))
     # if (len(red_algos) == 1):
-    #     red_algos = red_algos * (len(pred_algos))
+    #     red_algos = red_algos * (len(pred_algos)
     year, month, day = 2017, 7, 1
     data = data[data['Annee'] == year]
     data = data[data['Mois'] == month]
@@ -620,7 +619,6 @@ def plot_one_day(data_train, data_test, pred_algo, red_algo, is_model_station=Tr
         else:
             plt.savefig('resultats/qualite_prediction/arr' + str(h) + 'h.png')
     plt.show()
-
 
 def residual_plots(test_data, mods, station=None, squared=False):
     """
@@ -687,6 +685,34 @@ def residual_plots(test_data, mods, station=None, squared=False):
                 # plt.plot(g + v, ':r')
                 # plt.plot(g - v, ':r')
     plt.show()
+
+def get_predict(data_train, data_test, pred_algos, red_algos,red_dim,load=True, **kwargs):
+    
+    hparam = {
+        'is_model_station': True,
+        'norm': False,
+        'mean': False,
+        'load': True,
+        'decor': False,
+        'hours': [],
+        'log': False,
+        'is_combined': 3, #?????? 
+        'red': {},
+        'pred': {}
+        }
+    hparam.update(kwargs)
+    mods = EvaluatesModels(data_train, pred_algos, red_algos, red_dim, hparam['is_combined'], **hparam)
+    
+    for model in mods.models:
+        model.mod.load()
+        predict = model.mod.predict(data_test,database=True)
+        print("Informações de predict")
+        print(type(predict))
+        #print(list(predict))
+        print(predict.shape)
+        #print(predict.head())
+  
+
 
 
 if __name__ == '__main__':
@@ -759,9 +785,12 @@ if __name__ == '__main__':
         'n_week':4,
         'is_combined': 0,
     }
+
+
     with tf.device('/cpu:0'):
-        compare_model(data_train, data_test, pred, red, red_dim, stations=['Start date 6221', 'End date 6307', 'End date 5005'], **hparam)
-        #compare_model(data_train, data_test, pred, red, red_dim, stations=[], **hparam)
+        # compare_model(data_train, data_test, pred, red, red_dim, stations=['Start date 6221', 'End date 6307', 'End date 5005'], **hparam)
+        # compare_model(data_train, data_test, pred, red, red_dim, stations=[], **hparam)
         # complete_analysis(data_train, data_test, load=False, norm=False)
         # complete_analysis(data_train, data_test, red_dim)
         # plot_one_day(data_train, data_test, pred[0], red[0], load=True)
+        get_predict(data_train, data_test, pred, red, red_dim,**hparam)
