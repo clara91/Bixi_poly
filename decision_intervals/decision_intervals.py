@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(0,'C:/Users/cmartins/Documents/GitHub/Bixi_poly')
 
-from decision_intervals.ServiceLevel import ServiceLevel
+from ServiceLevel import ServiceLevel
 from utils.modelUtils import *
 from model_station.ModelStations import ModelStations
 from preprocessing.Data import Data
@@ -491,8 +489,8 @@ if __name__ == '__main__':
     # valid = data.get_partialdata_per(0, 0.8)
     env = Environment('Bixi', 'test')
     data = Data(env)
-    #WH = mod.get_all_factors(data) #eu comentei
-    WH = mod.get_all_factors_database(data)
+    WH = mod.get_all_factors(data) #eu comentei
+    #WH = mod.get_all_factors_database(data)
     #WH.to_csv("data_updated1.csv")
     # print(type(WH))
     #WH = WH.iloc[0:10]

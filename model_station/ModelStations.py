@@ -114,9 +114,6 @@ class ModelStations(object):
         else:
             df = learn
         col = [i for i in df.columns.values if 'date' not in i]
-        print("df[col]")
-        print(df[col].head(10))
-        print(list(df[col]))
         return df[col]
 
     def get_all_factors_database(self, learn):
@@ -125,9 +122,6 @@ class ModelStations(object):
         else:
             df = learn
         col = [i for i in df.columns.values if 'date' not in i]
-        print("df[col]")
-        print(df[col].head(10))
-        print(list(df[col]))
         return df[col]
 
     def get_decor_factors(self, learn:(Data,pd.DataFrame)):
@@ -218,38 +212,26 @@ class ModelStations(object):
         return self.reduce.get_y(miniOD)
         # return miniOD[learn.get_stations_col(2015)]
 
-    def predict(self, x, t=False, database = False):
+    def predict(self, x, t=False):
         starttime = time.time()
-
-        if database == True:
-        	xt = self.get_factors_database(x)
-        elif not isinstance(x,np.ndarray):  
+        if not isinstance(x,np.ndarray):
             if self.hparam['decor']:
                 xt = self.get_decor_factors(x)
             else:
-            	xt = self.get_factors(x)
+                xt = self.get_factors(x)
         else:
             xt=x
-        # print("informações importantes sobre xt")
-        # print(type(xt))
-        # print(len(list(xt)))
-        # print(list(xt))
-        # print(xt.head())
-        pred1 = self.meanPredictor.predict(xt, )  
+        pred1 = self.meanPredictor.predict(xt, )  # self.reduce.get_factors(x))
         pred = type(self.reduce).inv_transform(self.reduce, pred1)
         if t: print('prediction time', self.name, time.time() - starttime)
-        print("Predict mean finished")
         return maxi(0.01, pred)
 
     def variance(self, x,database = False):
-        if database == True:
-            xt = self.get_var_factors_database(x)
-        else:
-            xt = self.get_var_factors(x)
+
+        xt = self.get_var_factors(x)
         pred = self.predict(x)
         var = maxi(self.secondPredictor.predict(xt), 0.01)
         var = maxi(pred - pred ** 2, var)
-        print("Variance Finished")
         return var
 
     def zero_prob(self, x):

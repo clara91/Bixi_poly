@@ -40,7 +40,7 @@ class ServiceLevel(object):
         self.dict['stations'] = data.get_stations_ids(None)
         self.dict['capacities'] = data.get_stations_capacities(None).to_numpy().flatten()
         if predict:
-            self.mean = pd.DataFrame(self.mod.predict(x = WT,database = True), columns=self.dict['cols'])[
+            self.mean = pd.DataFrame(self.mod.predict(x = WT), columns=self.dict['cols'])[
                 self.dict['cols']].to_numpy()
         else:
             if config.learning_var.__contains__('Heure'):
@@ -168,14 +168,12 @@ class ServiceLevel(object):
         # for s in self.dict['stations']:
         #     cum_mean[str(s)] = cum_mean['End date ' + str(s)].to_numpy() - cum_mean[
         #         'Start date ' + str(s)].to_numpy()
-        print("4")
         cum_arr = cum_mean[self.dict['arr_cols']]
         cum_dep = cum_mean.drop(self.dict['arr_cols'], axis=1)
         # self.dict['cum_mean'] = cum_mean[list(map(str, self.dict['stations']))].to_numpy()
         if available_bikes is None:
             service = np.zeros((np.max(self.dict['capacities'] + 1), dep.shape[1]))
             for c in range(np.max(self.dict['capacities']) + 1):
-                print(c)
                 cap = np.ones(dep.shape[1]) * c
                 loc = cap
                 # cum_mean = np.add(self.dict['cum_mean'], cap)
@@ -192,7 +190,6 @@ class ServiceLevel(object):
             service_loc = (dep * (1 - proba_empty)).sum(axis=0) / (np.sum(dep, axis=0) + 0.001)
             service_ret = (arr * (1 - proba_full)).sum(axis=0) / (np.sum(arr, axis=0) + 0.001)
             service = 2 * mini(self.dep * service_loc, self.arr * service_ret)
-        print("5")
         return service
 
     def compute_proba_matrix(self, distrib='NB'):
@@ -205,7 +202,7 @@ class ServiceLevel(object):
         mat = np.zeros((self.mean.shape[0], self.mean.shape[1], self.N))
         if distrib == 'NB':
             p = self.mean / self.var
-            p = mini(p, 0.999)
+            p = mini(p, 0.999) 
             r = maxi(1, (self.mean * p / (1 - p)))
             r = mini(150, r)
             n = np.array(list(map(int, r.flatten()))).reshape(r.shape)
