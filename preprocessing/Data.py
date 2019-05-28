@@ -130,7 +130,7 @@ class Data(object):
     def get_miniOD_database(self,env,hours=[],from_year=None, log=False, mean=False):
         info = DB("info")
         df =  pd.DataFrame(info.query_df('select * from weather_actuel'))
-        holliday = pd.read_csv(env.off_days_update, delimiter=',', quotechar='"')
+        holliday = pd.read_csv(env.off_days, delimiter=',', quotechar='"')
         holliday = pd.to_datetime(holliday).dt.date
         self.miniOD = pd.DataFrame()
         ###########################################################

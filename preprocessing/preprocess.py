@@ -107,7 +107,7 @@ def complete(env, df, s=True):
 
 def load(name, env):
     path = env.precipitation_path
-    df = pd.read_csv(path + name, delimiter=',', quotechar='"')
+    df = pd.read_csv(path + name, delimiter=',', quotechar="'")
     # df.rename(index=str, columns=m, inplace=True)
     df['UTC timestamp'] = df['Date/Heure'].apply(
         lambda x: calendar.timegm(
@@ -139,15 +139,17 @@ def compute_features(env, save=True):
             except FileNotFoundError:
                 print('file not found : ' + file)
                 pass
-    r = pd.concat(frames)
+    r = pd.concat(frames, sort=True)
     ##########################################
     ##       cast string to numbers         ##
     ##########################################
+    #print("1")
     for c in ['temp', 'visi', 'pression']:
         r[c] = r[c].apply(lambda x: float(str(x).replace(',', '.')))
     r.loc[r['pression'] == 0, 'pression'] = np.nan
 
     r.loc[r['pression'].isnull(), 'pression'] = np.nanmean(r['pression'].to_numpy())
+    #print("2")
     ##########################################
     ##       compute time features          ##
     ##########################################
@@ -156,13 +158,14 @@ def compute_features(env, save=True):
     r['Jour'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).day)
     r['wday'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).weekday())
     r['Heure'] = r['UTC timestamp'].apply(lambda x: datetime.utcfromtimestamp(x).hour)
+    #print("3")
     ##########################################
     ##    chargement des jours feries       ##
     ##########################################
     ferie = pd.read_csv(env.off_days, delimiter=',', quotechar='"')
     ferie['ferie'] = np.ones(ferie.shape[0], dtype=int)
-    ferie['daycode'] = 380 * (ferie['annee'] - 2000) + ferie['mois'] * 31 + ferie['jour']
-    ferie.drop(['jour', 'annee', 'mois'], inplace=True, axis=1)
+    ferie['daycode'] = 380 * (ferie['year'] - 2000) + ferie['month'] * 31 + ferie['day']
+    ferie.drop(['day', 'year', 'month'], inplace=True, axis=1)
     r['daycode'] = 380 * (r['Annee'] - 2000) + r['Mois'] * 31 + r['Jour']
     r = pd.merge(r, ferie, how='left', on='daycode')
     r.drop('daycode', inplace=True, axis=1)
@@ -180,8 +183,6 @@ def compute_features(env, save=True):
             return r
 
         r[ch] = r['Temps'].apply(f)
-    print("rrrrrr44444444444444")
-    print(list(r))
     r['precip'] = r['pluie'] | r['neige'] | r['averses'] | r['orage']
     r['brr'] = r['brouillard'] | r['bruine']
     for h in range(24):
@@ -189,14 +190,11 @@ def compute_features(env, save=True):
     r['LV'] = (r['wday'] == 0) | (r['wday'] == 4)
     r['MMJ'] = (r['wday'] == 1) | (r['wday'] == 2) | (r['wday'] == 3)
     r['SD'] = (r['wday'] == 5) | (r['wday'] == 6)
-    print("rrrrrr55555555555555555")
-    print(list(r))
     if save:
         #print("########################################33aqui")
         #print(env.pre_per_hour_path)
 
         r.to_pickle(env.pre_per_hour_path)
-
     return r
 
 
@@ -262,15 +260,15 @@ def combine_merged_s(env, save=True, precipitation=None, tripdeparture=None, tri
     """
     # fields to keep
     if precipitation is None:
-        prec_per_h = env.load(env.pre_per_hour_path)
+        prec_per_h = env.load(env.pre_per_hour_path) #weather
     else:
         prec_per_h = precipitation
-    if tripdeparture is None: 
-        trip_dep_h = env.load(env.data_dep_per_hour_per_station_path)
+    if tripdeparture is None:
+        trip_dep_h = env.load(env.data_dep_per_hour_per_station_path) #trip dep
     else:
         trip_dep_h = tripdeparture
     if triparrivals is None:
-        trip_arr_h = env.load(env.data_arr_per_hour_per_station_path)
+        trip_arr_h = env.load(env.data_arr_per_hour_per_station_path)#trip arr
     else:
         trip_arr_h = triparrivals
 
@@ -401,8 +399,8 @@ def get_features(env):
     ##########################################
     ferie = pd.read_csv(env.off_days, delimiter=',', quotechar='"')
     ferie['ferie'] = np.ones(ferie.shape[0], dtype=int)
-    ferie['daycode'] = 380 * (ferie['Annee'] - 2000) + ferie['mois'] * 31 + ferie['jour']
-    ferie.drop(['jour', 'Annee', 'mois'], inplace=True, axis=1)
+    ferie['daycode'] = 380 * (ferie['year'] - 2000) + ferie['month'] * 31 + ferie['day']
+    ferie.drop(['day', 'year', 'month'], inplace=True, axis=1)
     r['daycode'] = 380 * (r['Annee'] - 2000) + r['Mois'] * 31 + r['Jour']
     r = pd.merge(r, ferie, how='left', on='daycode')
     r.drop('daycode', inplace=True, axis=1)
@@ -426,6 +424,7 @@ def get_features(env):
     r['LV'] = (r['wday'] == 0) | (r['wday'] == 4)
     r['MMJ'] = (r['wday'] == 1) | (r['wday'] == 2) | (r['wday'] == 3)
     r['SD'] = (r['wday'] == 5) | (r['wday'] == 6)
+    
     return r
 
 
@@ -440,24 +439,26 @@ def recompute_all_files(system, name, save=True):
         env = Environment(system, name)
         # compute_features(env)
         # print('data per station')
-        compute_data_per_hour_per_station(env) 
+        compute_data_per_hour_per_station(env)
         # print('merge station')
         combine_merged_s(env)
-        return combine_lost_satisfied_demand(env,comb=False) 
+        return combine_lost_satisfied_demand(env,comb=False)
     else:
         env = Environment(system, name)
-        precip = compute_features(env, save=True)
-        # print('data per station')
-        # dep, arr = compute_data_per_hour_per_station(env, save=True)
-        # print('merge station')
-        # merged = combine_merged_s(env, save=True, precipitation=precip, tripdeparture=dep,
-        #                           triparrivals=arr)
-        # return merged
+        precip = compute_features(env, save=True) #weather
+        print('data per station')
+        dep, arr = compute_data_per_hour_per_station(env, save=True) #trip
+        print('merge station')
+        merged = combine_merged_s(env, save=True, precipitation=precip, tripdeparture=dep,
+                                  triparrivals=arr)
+        return merged
 
 if __name__ == '__main__':
-    recompute_all_files('Bixi','train',False)
-    recompute_all_files('Bixi','test',False)
+    recompute_all_files('Bixi','train')
+    recompute_all_files('Bixi','test')
     #recompute_all_files('citibike','train')
     #recompute_all_files('citibike','test')
     # recompute_all_files('capitalBS','train')
     # recompute_all_files('capitalBS','test')
+    # env = Environment('Bixi', 'train')
+    # combine_lost_satisfied_demand(env,comb=False)

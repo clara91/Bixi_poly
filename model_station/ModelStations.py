@@ -114,6 +114,20 @@ class ModelStations(object):
         else:
             df = learn
         col = [i for i in df.columns.values if 'date' not in i]
+        print("df[col]")
+        print(df[col].head(10))
+        print(list(df[col]))
+        return df[col]
+
+    def get_all_factors_database(self, learn):
+        if isinstance(learn, Data):
+            df = learn.get_miniOD_database(self.env,self.hours)
+        else:
+            df = learn
+        col = [i for i in df.columns.values if 'date' not in i]
+        print("df[col]")
+        print(df[col].head(10))
+        print(list(df[col]))
         return df[col]
 
     def get_decor_factors(self, learn:(Data,pd.DataFrame)):
@@ -159,20 +173,36 @@ class ModelStations(object):
         col = np.unique(col)
         return df[col]
     def get_factors_database(self,learn:(Data,pd.DataFrame)):
-    	df = learn.get_miniOD_database(self.env,self.hours)
-    	col = []
-    	for i in df.columns.values:
-    		for j in config.learning_var:
-    			if j==i or j == i[:-1] or j == i[:-2]:
-    				col.append(i)
-    	col = np.unique(col)
-    	return df[col]
-    	#print(type(df))
+        if isinstance(learn, Data):
+            df = learn.get_miniOD_database(self.hours)
+        else:
+            df = learn
+        col = []
+        for i in df.columns.values:
+            for j in config.learning_var:
+                if j==i or j == i[:-1] or j == i[:-2]:
+                    col.append(i)
+        col = np.unique(col)
+        return df[col]
+        #print(type(df))
 
     def get_var_factors(self, learn:[Data,pd.DataFrame]):
 
         if isinstance(learn, Data):
             df = learn.get_miniOD(self.hours)
+        else:
+            df = learn
+        col = []
+        for i in df.columns.values:
+            for j in config.learning_var:
+                if j == i or j == i[:-1] or j == i[:-2]:
+                    col.append(i)
+        col = np.unique(col)
+        return df[col]
+    def get_var_factors_database(self, learn:[Data,pd.DataFrame]):
+
+        if isinstance(learn, Data):
+            df = learn.get_miniOD_database(self.hours)
         else:
             df = learn
         col = []
@@ -205,17 +235,21 @@ class ModelStations(object):
         # print(len(list(xt)))
         # print(list(xt))
         # print(xt.head())
-        pred1 = self.meanPredictor.predict(xt, )  # self.reduce.get_factors(x))
+        pred1 = self.meanPredictor.predict(xt, )  
         pred = type(self.reduce).inv_transform(self.reduce, pred1)
         if t: print('prediction time', self.name, time.time() - starttime)
-
+        print("Predict mean finished")
         return maxi(0.01, pred)
 
-    def variance(self, x):
-        xt = self.get_var_factors(x)
+    def variance(self, x,database = False):
+        if database == True:
+            xt = self.get_var_factors_database(x)
+        else:
+            xt = self.get_var_factors(x)
         pred = self.predict(x)
         var = maxi(self.secondPredictor.predict(xt), 0.01)
         var = maxi(pred - pred ** 2, var)
+        print("Variance Finished")
         return var
 
     def zero_prob(self, x):

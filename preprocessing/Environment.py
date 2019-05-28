@@ -95,16 +95,15 @@ class Environment(object):
                 return {
                     2015: ['OD_2015-04.csv', 'OD_2015-05.csv', 'OD_2015-06.csv', 'OD_2015-07.csv', 'OD_2015-08.csv',
                            'OD_2015-09.csv', 'OD_2015-10.csv', 'OD_2015-11.csv'],
-                    2016: ['OD_2016-05.csv', 'OD_2016-06.csv', 'OD_2016-07.csv', 'OD_2016-08.csv', 'OD_2016-09.csv',
-                           # 'OD_2016-10.csv', 'OD_2016-11.csv'
-                           ],
-                    # 2017: [
-                    #     'OD_2017-04.csv', 'OD_2017-05.csv',
-                    # ]
+                    2016: ['OD_2016-04.csv', 'OD_2016-05.csv', 'OD_2016-06.csv', 'OD_2016-07.csv', 'OD_2016-08.csv', 
+                           'OD_2016-09.csv', 'OD_2016-10.csv', 'OD_2016-11.csv'],
+                    2017: ['OD_2017-04.csv', 'OD_2017-05.csv', 'OD_2017-06.csv', 'OD_2017-07.csv', 'OD_2017-08.csv',
+                           'OD_2017-09.csv', 'OD_2017-10.csv', 'OD_2017-11.csv'],
+                    2018: ['OD_2018-04.csv', 'OD_2018-05.csv', 'OD_2018-06.csv', 'OD_2018-07.csv']
                 }
             if self.name.__contains__('test'):
                 return {
-                    2016: ['OD_2016-10.csv', 'OD_2016-11.csv']
+                    2018: ['OD_2018-08.csv', 'OD_2018-09.csv', 'OD_2018-10.csv', 'OD_2018-11.csv']
                     # 2017: [
                     #     'OD_2017-06.csv',
                     #     'OD_2017-07.csv',
@@ -142,7 +141,8 @@ class Environment(object):
         files = {
             2015: [],
             2016: [],
-            2017: []
+            2017: [],
+            2018: []
         }
         for y in list(files.keys()):
             if y % 4 != 0:
@@ -161,7 +161,6 @@ class Environment(object):
                     else:
                         files[y].append(
                             'fre-hourly-' + str(m) + '01' + str(y) + '-' + str(m) + nb[m - 1] + str(y) + '.csv')
-
         return files
 
     def get_cols(self, rename=False):

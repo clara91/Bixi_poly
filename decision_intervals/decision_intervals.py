@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0,'C:/Users/cmartins/Documents/GitHub/Bixi_poly')
+
 from decision_intervals.ServiceLevel import ServiceLevel
 from utils.modelUtils import *
 from model_station.ModelStations import ModelStations
@@ -36,7 +39,7 @@ class DecisionIntervals(object):
         # print(hparam)
         self.SL.compute_mean_var(WT, data, predict)
         service = self.SL.compute_service_level(hparam['distrib'])
-
+        print("2")
         best_inv = np.argmax(service, axis=0)
         best_serlev = service[best_inv, range(service.shape[1])]
         service[service == 0] = 2
@@ -47,7 +50,7 @@ class DecisionIntervals(object):
         service_min_to_assure = worst_serlev + (best_serlev - worst_serlev) * self.param_beta
         b = service >= service_min_to_assure
         b2 = np.cumsum(b, axis=0)
-
+        print("3")
         min_inv = np.argmax(b, axis=0)
         max_inv = np.argmax(b2, axis=0)
 
@@ -480,26 +483,43 @@ if __name__ == '__main__':
     mod.train(data)
     mod.save()
     mod.load()
-    DI = DecisionIntervals(env, mod, 0.45, 0.60)
+    DI = DecisionIntervals(env, mod, 0.45, 0.60) #alpha and beta
 
-    # DI.load_intervals(data,'D:/maitrise/code/resultats/stations_bixi_min_max_target.csv','')
+    #DI.load_intervals(data,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/resultats/stations_bixi_min_max_target.csv','')
     # r = 6 + 48 + 24 + 7 * 24 + 24 - 14
-    r = 0
+    r = 0 #?
     # valid = data.get_partialdata_per(0, 0.8)
     env = Environment('Bixi', 'test')
     data = Data(env)
-    WH = mod.get_all_factors(data)
-    DI.compute_min_max_data(WH, data, True, **{'distrib': 'P'})
-    print(DI.eval_worst_case(data,'P',DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''), data.get_miniOD([]),arr_dep='dep'))
-    print(DI.eval_worst_case(data,'P',DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''), data.get_miniOD([]),arr_dep='arr'))
-    print(DI.eval_target(data,'P',DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''), data.get_miniOD([])))
-    print(DI.eval_worst_case(data,'P',DI.load_intervals(data, 'D:/maitrise/code/resultats/stations_bixi_min_max_target.csv',''), data.get_miniOD([])))
+    #WH = mod.get_all_factors(data) #eu comentei
+    WH = mod.get_all_factors_database(data)
+    #WH.to_csv("data_updated1.csv")
+    # print(type(WH))
+    #WH = WH.iloc[0:10]
+    # print(WH.head(10))
+    # print(list(WH))
+    # print(WH.shape)
+    interval = DI.compute_decision_intervals(WH, data, predict=True)
+    # print(interval)
+    # print(np.shape(interval))
 
+    
+    
+    #print("Informações sobre load_intervals")
+    #print(teste)
+    #teste = DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', '') # informações do intervalo 
+    #get_mini = data.get_miniOD([]) #informações do tempo + chega e saida de cada estação por hora 
+ 
+    #print(DI.eval_worst_case(data,'P',teste, get_mini ,arr_dep='dep'))
+    #print(DI.eval_worst_case(data,'P',DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''), data.get_miniOD([]),arr_dep='arr'))
+    #print(DI.eval_target(data,'P',DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''), data.get_miniOD([])))
+    ##print(DI.eval_worst_case(data,'P',DI.load_intervals(data, 'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/resultats/stations_bixi_min_max_target.csv',''), data.get_miniOD([])))
 
-    print(DI.mean_alerts(data, DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''),
-                   data.get_miniOD([])))
-    print(DI.mean_alerts(data, DI.load_intervals(data, 'D:/maitrise/code/resultats/stations_bixi_min_max_target.csv', ''),
-                   data.get_miniOD([])))
+    
+    #print(DI.mean_alerts(data, DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''),
+    #               data.get_miniOD([])))
+    ##print(DI.mean_alerts(data, DI.load_intervals(data, 'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/resultats/stations_bixi_min_max_target.csv', ''),
+    ##               data.get_miniOD([])))
 
     # WH = WH[WH['Annee']==2015]
     # DI.general_min_max(WH, data, True, **{'distrib': 'ZI'})
