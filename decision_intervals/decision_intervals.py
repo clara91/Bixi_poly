@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0,'C:/Users/cmartins/Documents/GitHub/Bixi_poly')
 
-from decision_intervals.ServiceLevel import ServiceLevel
+from ServiceLevel import ServiceLevel
 from utils.modelUtils import *
 from model_station.ModelStations import ModelStations
 from preprocessing.Data import Data
