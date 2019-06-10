@@ -181,60 +181,10 @@ class Data(object):
             self.miniOD['h' + str(h)] = (self.miniOD['Heure'] == h)
         ##################################################total################# VER ISSO AQUIIIIIIIII
 
-        # prec_per_h = env.load(env.pre_per_hour_path)
-        # trip_dep_h = env.load(env.data_dep_per_hour_per_station_path)
-        # trip_arr_h = env.load(env.data_arr_per_hour_per_station_path)
-
-        # m = pd.merge(trip_arr_h[[config.arr_prefix, 'UTC timestamp', 'station']], trip_dep_h[[config.dep_prefix, 'UTC timestamp', 'station']],
-        #              how='outer', on=['UTC timestamp', 'station'])
-        # # approximation : 0 to all hours that has no data
-        # for ch in [config.dep_prefix, config.arr_prefix]:
-        #     m[ch].fillna(0,inplace=True)
-        # # print('dep loaded')
-        # # m['wday'] = m['UTC timestamp'].apply(lambda x: time.localtime(x).tm_wday)
-        # merged = pd.merge(m, prec_per_h, how='left', on='UTC timestamp')
-
-        # stations = Stations(env, None).get_ids()
-        # df = merged[merged['station'] == int(stations[0])]
-        # df.drop([config.arr_prefix, config.dep_prefix, 'station'], inplace=True, axis=1)
-        # df = df.reset_index()
-        # k = (merged['station'] == stations[0]).sum()
-        # merged.sort_values(by=['station', 'UTC timestamp'], inplace=True)
-        # startdate = merged[config.dep_prefix].to_numpy().reshape((int(merged.shape[0] / k), k)).T
-        # enddate = merged[config.arr_prefix].to_numpy().reshape((int(merged.shape[0] / k), k)).T
-        # startcol = list(map(lambda x: config.dep_prefix + ' ' + str(x), stations))
-        # endcol = list(map(lambda x: config.arr_prefix + ' ' + str(x), stations))
-        # start = pd.DataFrame(startdate, columns=startcol)
-        # hour = merged[merged['station'] == stations[0]]['UTC timestamp']
-        # hour = hour.reset_index()
-        # start['UTC timestamp'] = hour['UTC timestamp']
-        # end = pd.DataFrame(enddate, columns=endcol)
-        # end['UTC timestamp'] = hour['UTC timestamp']
-        # df = pd.merge(df, start, how='left', on='UTC timestamp')
-        # df = pd.merge(df, end, how='left', on='UTC timestamp')
-        # del start, end
-        # c_station=[]
-        # for s in stations:
-        #     c_station.append(config.dep_prefix + ' ' + str(s))
-        #     c_station.append(config.arr_prefix + ' ' + str(s))
-
-        # self.miniOD['total']=df[c_station].to_numpy().sum(axis=1)
+        
         self.miniOD['total'] = pd.DataFrame(np.zeros(len(self.miniOD))) #TEM QUE REFAZER ESSA PARTE AQUI
         ########################################################################
-        # li = ['vent', 'temp', 'visi',
-        #   'pression', 'Hum']
-        # self.miniOD[li].fillna(method='ffill')
-        # self.miniOD[li].fillna(method='bfill')
-        # self.miniOD.fillna(value=0, inplace=True)
-        
-        # for c in ['temp', 'visi', 'pression']:
-        #     self.miniOD[c] = self.miniOD[c].apply(lambda x: float(str(x).replace(',', '.')))
-        # self.miniOD.loc[self.miniOD['pression'] == 0, 'pression'] = np.nan
-
-        # self.miniOD.loc[self.miniOD['pression'].isnull(), 'pression'] = np.nanmean(self.miniOD['pression'].to_numpy())
-        # self.miniOD.loc['pression'].fillna(100,inplace=True)
-        #print(self.miniOD.head(100))
-        ########################################################################
+       
         r = self.miniOD.shape[0]
         self.miniOD = self.miniOD[int(self.min * r):int(self.max * r)]
         
@@ -271,13 +221,74 @@ class Data(object):
         # df[li].fillna(method='bfill')
     
 
+
+    def get_miniOD_forecast(self,env, interval, length = [9, 2, 4, 4, 3, 2]):
+
+        info = DB("info")
+        df =  pd.DataFrame(info.query_df('select * from weather_prediction'))
+        df = df.iloc[-24]
+        holliday = pd.read_csv(env.off_days, delimiter=',', quotechar='"')
+        holliday = pd.to_datetime(holliday).dt.date
+        self.miniOD = pd.DataFrame(columns={'UTC timestamp','Annee','Date/Heure','Dir. du vent (10s deg)','Heure','Jour','Mois', 'Temps','temp','vent','wday','ferie','averses', 'neige',
+            'pluie','fort','modere', 'verglas', 'bruine', 'poudrerie', 'brouillard', 'nuageux', 'orage', 'degage', 'precip', 'brr', 'h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 
+            'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21', 'h22', 'h23', 'LV', 'MMJ', 'SD'})
+        self.miniOD = self.miniOD[['UTC timestamp','Annee','Date/Heure','Dir. du vent (10s deg)','Heure','Jour','Mois', 'Temps','temp','vent','wday','ferie','averses', 'neige',
+            'pluie','fort','modere', 'verglas', 'bruine', 'poudrerie', 'brouillard', 'nuageux', 'orage', 'degage', 'precip', 'brr', 'h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 
+            'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21', 'h22', 'h23', 'LV', 'MMJ', 'SD']]
+        print(self.miniOD)
+        #pd.DataFrame(columns ={"dia","hora","wday"})
+        #print(type(df['datetime']))
+        
+        for i in range(length[interval]):
+            a=np.array([])
+            ts = df['datetime']
+            ts = ts.replace(hour =i+1+int(df['datetime'].hour))
+            #print(type(ts))
+            a = np.append(a,calendar.timegm(datetime.strptime(str(ts)[:13], env.precipitation_date_format).timetuple())) #'UTC timestamp'
+            a = np.append(a,ts.year) #Annee
+            a = np.append(a,ts) #Date/Heure
+            a = np.append(a,vent_dire(df['vent_direction']))
+            a = np.append(a,ts.hour) #Heure
+            a = np.append(a,ts.day) #Jour
+            a = np.append(a,ts.month) #Mois 
+            a = np.append(a,df['cond_meteo_min'+str(i+1)]) #Temps
+            a = np.append(a,df['temp_min'+str(i+1)]) #temp
+            a = np.append(a,df['vent_kmh']) #vent
+            a = np.append(a,ts.weekday()) #wday
+            a = np.append(a,ts == holliday.any()) #ferie
+            #print(type(df['cond_meteo_min1']))
+            #'averses', 'neige','pluie','fort','modere', 'verglas', 'bruine', 'poudrerie', 'brouillard', 'nuageux', 'orage', 'degage'
+            champs = env.weather_fields
+            for ch in champs.keys():
+                def f(x):
+                    r = 0
+                    for i in champs[ch]:
+                        r += int(str(x).lower().find(i) != -1)
+                    return r
+                a = np.append(a,f(df['cond_meteo_min'+str(i+1)]))
+            #print(a[-1])
+            a = np.append(a,a[14] | a[13] | a[12]|a[22]) #precip #r['pluie'] | r['neige'] | r['averses'] | r['orage']
+            a = np.append(a,a[18]|a[20]) #brr #r['brouillard'] | r['bruine']
+            #h
+            for h in range(24):
+                a = np.append(a, ts.hour == h)
+
+            a = np.append(a,(ts.weekday() == 0) | (ts.weekday() == 4)) #LV
+            a = np.append(a,(ts.weekday() == 1) | (ts.weekday() == 2) | (ts.weekday() == 3)) #MMJ
+            a = np.append(a,(ts.weekday() == 5) | (ts.weekday() == 6)) #SD
+            #print(a)
+            self.miniOD.loc[i] = a
+            #print(self.miniOD.loc[i])
+            #print(self.miniOD)
+        return self.miniOD
+
+
     def get_satisfied_demand(self):
         return self.env.load(self.env.station_df_satisfied_path)
 
     def get_synthetic_miniOD(self, hours, log, from_year=None):
         self.sminiOD = self.get_miniOD(hours, from_year, log)
-        self.sminiOD['hh'] = self.sminiOD['UTC timestamp'].apply(
-            lambda x: x % (3600 * 24 * 7))
+        self.sminiOD['hh'] = self.sminiOD['UTC timestamp'].apply(lambda x: x % (3600 * 24 * 7))
         self.sminiOD = self.sminiOD.groupby('hh').mean()
         return self.sminiOD
 
@@ -305,20 +316,42 @@ class Data(object):
             d.max = self.min + (start + n) / dim
         return d
 
+def vent_dire(x):
+        if(x =='N'):
+            return 36
+        elif(x == 'NW'):
+            return 31.5
+        elif(x == 'W'):
+            return 27
+        elif(x == 'SW'):
+            return 22.5
+        elif(x == 'S'):
+            return 18
+        elif(x == 'SE'):
+            return 13.5
+        elif(x == 'E'):
+            return 9
+        elif(x == 'NE'):
+            return 4.5
+        elif(x =='VR'):
+            return -1
+        else:
+            return None
 
 if __name__ == '__main__':
     from preprocessing.Environment import Environment
 
     ud = Environment('Bixi', 'train')
     d = Data(ud)
-    test1 = d.get_miniOD(log=False)
-    test = d.get_miniOD_database(d.env)
+    #test1 = d.get_miniOD(log=False)
+    #print(list(test1))
+    test = d.get_miniOD_forecast(d.env,2)
 
     # print("informações sobre miniOD_database")
     # print(list(test))
     # print(len(list(test)))
     # # print(test.head())
-    print("informações sobre miniOD")
+    # print("informações sobre miniOD")
     # print(list(test1))
     # print(len(list(test1)))
     # 

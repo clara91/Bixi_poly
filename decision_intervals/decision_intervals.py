@@ -4,7 +4,7 @@ from utils.modelUtils import *
 from model_station.ModelStations import ModelStations
 from preprocessing.Data import Data
 from preprocessing.Environment import Environment
-
+import sys
 
 class DecisionIntervals(object):
     """
@@ -17,15 +17,17 @@ class DecisionIntervals(object):
         :param arr_vs_dep: alpha value (value of arrivals vs departures)
         :param beta: strength of intervals
         """
-        self.hours = [0, 6, 11, 15, 20]
-        self.length = [6, 5, 4, 5, 4]
+        #self.hours = [0, 6, 11, 15, 20]
+        #self.length = [6, 5, 4, 5, 4]
+        self.hours = [0, 9, 11, 15, 19, 22]
+        self.length =  [9, 2, 4, 4, 3, 2]
         self.SL = ServiceLevel(env, mod, arr_vs_dep)
         self.param_beta = beta
 
     def compute_decision_intervals(self, WT, data, predict=True, **kwargs):
         """
         computes decision intervals for WT (Weather and temporal features) data
-        :param WT: the features for the next hours, the size of the matrix defines the time window
+        :param WT: the features for the next hours, the 
         :param data: the learning data (class Data)
         :param predict: if True use predictions, if False use real data
         :return: (min, target, max), each element being a array containing one value per station
@@ -37,7 +39,7 @@ class DecisionIntervals(object):
         # print(hparam)
         self.SL.compute_mean_var(WT, data, predict)
         service = self.SL.compute_service_level(hparam['distrib'])
-        print("2")
+        #print("2")
         best_inv = np.argmax(service, axis=0)
         best_serlev = service[best_inv, range(service.shape[1])]
         service[service == 0] = 2
@@ -48,7 +50,7 @@ class DecisionIntervals(object):
         service_min_to_assure = worst_serlev + (best_serlev - worst_serlev) * self.param_beta
         b = service >= service_min_to_assure
         b2 = np.cumsum(b, axis=0)
-        print("3")
+        #print("3")
         min_inv = np.argmax(b, axis=0)
         max_inv = np.argmax(b2, axis=0)
 
@@ -65,10 +67,12 @@ class DecisionIntervals(object):
         tw = 10
         cond = True
         i0 = 0
-        while cond:
-            cond = not ((WT['wday'].to_numpy()[i0] == 6) and (WT['Heure'].to_numpy()[i0] == 0))
-            i0 += 1
-        i0 -= 1
+        # while cond:
+        #     print((WT['wday'].to_numpy()[i0]))
+        #     print(WT['Heure'].to_numpy()[i0])
+        #     cond = not ((WT['wday'].to_numpy()[i0] == 6) and (WT['Heure'].to_numpy()[i0] == 0)) #sunday midnight
+        #     i0 += 1
+        # i0 -= 1
         cols_min = []
         cols_max = []
         cols_target = []
@@ -88,7 +92,7 @@ class DecisionIntervals(object):
                                     index=data.get_stations_ids(None), columns=cols_target)
 
         for d in range(7):
-            for h in range(len(self.hours)):
+            for h in range(len(self.hours)): #[0, 9, 11, 15, 19, 22] #[6, 5, 4, 5, 4]
                 print(i0 + 24 * d + self.hours[h] + tw, end='\r')
                 assert (WT['wday'].iloc[i0 + 24 * d + self.hours[h]] == (d - 1) % 7)
                 m, t, M = self.compute_decision_intervals(
@@ -101,7 +105,7 @@ class DecisionIntervals(object):
                 inter_target.to_numpy()[:, 5 * d + h] = t
                 inter_max.to_numpy()[:, 5 * d + h] = M
 
-        min_max = pd.read_csv(open(config.root_path + 'resultats/stations_bixi_min_max_target.csv'), sep=',')
+        min_max = pd.read_csv(open(config.root_path + 'resultats/decision_interval_min_max_target_new.csv'), sep=',')
         min_max[cols_min] = np.nan
         min_max[cols_max] = np.nan
         min_max[cols_target] = np.nan
@@ -474,6 +478,7 @@ class DecisionIntervals(object):
 
 
 if __name__ == '__main__':
+    time_period = int(sys.argv[1])
     env = Environment('Bixi', 'train')
     data = Data(env)
     mod = ModelStations(env, 'svd', 'gbt', dim=10,**{'var':True})
@@ -481,7 +486,7 @@ if __name__ == '__main__':
     mod.train(data)
     mod.save()
     mod.load()
-    DI = DecisionIntervals(env, mod, 0.45, 0.60) #alpha and beta
+    DI = DecisionIntervals(env, mod, 0.45, 0.6) #alpha and beta
 
     #DI.load_intervals(data,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/resultats/stations_bixi_min_max_target.csv','')
     # r = 6 + 48 + 24 + 7 * 24 + 24 - 14
@@ -489,16 +494,23 @@ if __name__ == '__main__':
     # valid = data.get_partialdata_per(0, 0.8)
     env = Environment('Bixi', 'test')
     data = Data(env)
-    WH = mod.get_all_factors(data) #eu comentei
+    #WH = mod.get_all_factors(data) #eu comentei
     #WH = mod.get_all_factors_database(data)
-    #WH.to_csv("data_updated1.csv")
+    #WH.to_csv("data_updated1_database.csv")
+    WH = mod.get_factors_forecast(data,time_period)
     # print(type(WH))
-    #WH = WH.iloc[0:10]
+    # print("shpe 1")
+    print(WH)
+    # print("shpe 2")
+    # print(WH.shape)
     # print(WH.head(10))
     # print(list(WH))
     # print(WH.shape)
     interval = DI.compute_decision_intervals(WH, data, predict=True)
-    # print(interval)
+    print(interval)
+    # periods = DI.general_min_max(WH, data, True, **{'distrib': 'P'})
+    # print(periods)
+    # print(list(periods))
     # print(np.shape(interval))
 
     

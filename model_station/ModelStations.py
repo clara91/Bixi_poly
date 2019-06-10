@@ -166,6 +166,28 @@ class ModelStations(object):
         #print(df['total'].head(100).unique())
         col = np.unique(col)
         return df[col]
+
+    def get_factors_forecast(self, learn:(Data,pd.DataFrame), interval):
+        if isinstance(learn, Data):
+            df = learn.get_miniOD_forecast(learn.env,interval)
+        else:
+            df = learn
+        #print("aqui")
+        #print(df.head())
+        col = []
+        for i in df.columns.values:
+            for j in config.learning_var:
+                if j==i or j == i[:-1] or j == i[:-2]:
+                    col.append(i)
+        # if 'Date/Heure' in col:
+        #     col.remove('Date/Heure')
+        # for i in col:
+        #     if ' ind' in i or ' Indicateur'in i or 'Dir. ' in i:
+        #         col.remove(i)
+        
+        #print(df['total'].head(100).unique())
+        col = np.unique(col)
+        return df[col]
     def get_factors_database(self,learn:(Data,pd.DataFrame)):
         if isinstance(learn, Data):
             df = learn.get_miniOD_database(self.hours)

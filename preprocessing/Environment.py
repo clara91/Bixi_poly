@@ -66,18 +66,18 @@ class Environment(object):
         self.prevision_meteo = self.data_path + 'prevision.csv'
         self.precipitation_date_format = '%Y-%m-%d %H'
         self.weather_fields = {
-            'averses': ['averses','rainshower showers'], #short period of rain
-            'neige': ['neige','snow','snowshower'], #snow
-            'pluie': ['pluie','rain'], #rain
+            'averses': ['averses','rainshower','showers'], #short period of rain
+            'neige': ['neige','snow','flurr'], #snow
+            'pluie': ['pluie','rain','wet'], #rain
             'fort': ['fort','mainly','heavy'], #strong,heacy
             'modere': ['modere', 'modã©rã©e','partly','mostly','light','moderate'], #moderate
             'verglas': ['vergla','freezing rain'], #black ice
-            'bruine': ['bruine','drizzle'], #drizzle
-            'poudrerie': ['poudrerie', 'granules', 'ice'], #ice
+            'bruine': ['bruine','drizzle','showers'], #drizzle
+            'poudrerie': ['poudrerie', 'granules', 'ice','pellets'], #ice
             'brouillard': ['brouillard', 'brume','mist','fog','smoke'], #fog
-            'nuageux': ['nuageux','cloudy'], #cloudy
+            'nuageux': ['nuageux','cloud','overcast'], #cloudy
             'orage': ['orage','thunderstorms'], #thunderstorm
-            'degage': ['degage', 'dã©gagã©','sunny','clear'],
+            'degage': ['degage', 'dã©gagã©','sun','clear'],
 
         }
 

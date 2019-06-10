@@ -139,6 +139,7 @@ class DimRedSum(DimRed):
     def train(self, data, **kwargs):
         self.model = None
         if self.mean:
+
             _, self.mean_coef = data.get_miniOD(hours=[], log=self.log, mean=self.mean)[
                 self.preselect].to_numpy().sum(axis=1)
             self.mean_coef = self.mean_coef[self.preselect].to_numpy()
