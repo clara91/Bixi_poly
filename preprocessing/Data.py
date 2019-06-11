@@ -1,7 +1,7 @@
 from preprocessing.Station import *
 from preprocessing.Environment import Environment
 import config
-from datetime import datetime
+from datetime import datetime, timedelta
 from bixi_pkg.db import DB
 import calendar 
 
@@ -225,8 +225,9 @@ class Data(object):
     def get_miniOD_forecast(self,env, interval, length = [9, 2, 4, 4, 3, 2]):
 
         info = DB("info")
-        df =  pd.DataFrame(info.query_df('select * from weather_prediction'))
-        df = df.iloc[-24]
+        #df =  pd.DataFrame(info.query_df('select * from weather_prediction'))
+        df = info.query_df('select * from weather_prediction ORDER BY datetime desc limit 26')
+        df = df[df.datetime >= datetime.now().replace(microsecond=0).replace(second=0).replace(minute=0)]
         holliday = pd.read_csv(env.off_days, delimiter=',', quotechar='"')
         holliday = pd.to_datetime(holliday).dt.date
         self.miniOD = pd.DataFrame(columns={'UTC timestamp','Annee','Date/Heure','Dir. du vent (10s deg)','Heure','Jour','Mois', 'Temps','temp','vent','wday','ferie','averses', 'neige',
@@ -235,25 +236,29 @@ class Data(object):
         self.miniOD = self.miniOD[['UTC timestamp','Annee','Date/Heure','Dir. du vent (10s deg)','Heure','Jour','Mois', 'Temps','temp','vent','wday','ferie','averses', 'neige',
             'pluie','fort','modere', 'verglas', 'bruine', 'poudrerie', 'brouillard', 'nuageux', 'orage', 'degage', 'precip', 'brr', 'h0', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 
             'h9', 'h10', 'h11', 'h12', 'h13', 'h14', 'h15', 'h16', 'h17', 'h18', 'h19', 'h20', 'h21', 'h22', 'h23', 'LV', 'MMJ', 'SD']]
-        print(self.miniOD)
+        #print(df['vent_direction'].iloc[-1])
         #pd.DataFrame(columns ={"dia","hora","wday"})
         #print(type(df['datetime']))
         
         for i in range(length[interval]):
             a=np.array([])
-            ts = df['datetime']
-            ts = ts.replace(hour =i+1+int(df['datetime'].hour))
+            ts = df['datetime'].iloc[-2-i]
+            #ts = ts.replace(hour =i+1+int(df['datetime'].hour))
+            
+            # if ts.hour== 23:
+            #     ts = ts +timedelta(hour=1)
+            #print(ts)
             #print(type(ts))
             a = np.append(a,calendar.timegm(datetime.strptime(str(ts)[:13], env.precipitation_date_format).timetuple())) #'UTC timestamp'
             a = np.append(a,ts.year) #Annee
             a = np.append(a,ts) #Date/Heure
-            a = np.append(a,vent_dire(df['vent_direction']))
+            a = np.append(a,vent_dire(df['vent_direction'].iloc[-1]))
             a = np.append(a,ts.hour) #Heure
             a = np.append(a,ts.day) #Jour
             a = np.append(a,ts.month) #Mois 
-            a = np.append(a,df['cond_meteo_min'+str(i+1)]) #Temps
-            a = np.append(a,df['temp_min'+str(i+1)]) #temp
-            a = np.append(a,df['vent_kmh']) #vent
+            a = np.append(a,df['cond_meteo_min'+str(i+1)].iloc[-2-i]) #Temps
+            a = np.append(a,df['temp_min'+str(i+1)].iloc[-2-i]) #temp
+            a = np.append(a,df['vent_kmh'].iloc[-1]) #vent
             a = np.append(a,ts.weekday()) #wday
             a = np.append(a,ts == holliday.any()) #ferie
             #print(type(df['cond_meteo_min1']))
@@ -265,7 +270,7 @@ class Data(object):
                     for i in champs[ch]:
                         r += int(str(x).lower().find(i) != -1)
                     return r
-                a = np.append(a,f(df['cond_meteo_min'+str(i+1)]))
+                a = np.append(a,f(df['cond_meteo_min'+str(i+1)].iloc[-2-i]))
             #print(a[-1])
             a = np.append(a,a[14] | a[13] | a[12]|a[22]) #precip #r['pluie'] | r['neige'] | r['averses'] | r['orage']
             a = np.append(a,a[18]|a[20]) #brr #r['brouillard'] | r['bruine']
@@ -280,6 +285,7 @@ class Data(object):
             self.miniOD.loc[i] = a
             #print(self.miniOD.loc[i])
             #print(self.miniOD)
+        self.miniOD.to_csv("data_updated_forecast1.csv")
         return self.miniOD
 
 
@@ -345,7 +351,7 @@ if __name__ == '__main__':
     d = Data(ud)
     #test1 = d.get_miniOD(log=False)
     #print(list(test1))
-    test = d.get_miniOD_forecast(d.env,2)
+    test = d.get_miniOD_forecast(d.env,0)
 
     # print("informações sobre miniOD_database")
     # print(list(test))

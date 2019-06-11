@@ -500,7 +500,7 @@ if __name__ == '__main__':
     WH = mod.get_factors_forecast(data,time_period)
     # print(type(WH))
     # print("shpe 1")
-    print(WH)
+    # print(WH)
     # print("shpe 2")
     # print(WH.shape)
     # print(WH.head(10))
