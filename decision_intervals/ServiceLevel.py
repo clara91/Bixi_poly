@@ -171,6 +171,7 @@ class ServiceLevel(object):
         cum_arr = cum_mean[self.dict['arr_cols']]
         cum_dep = cum_mean.drop(self.dict['arr_cols'], axis=1)
         # self.dict['cum_mean'] = cum_mean[list(map(str, self.dict['stations']))].to_numpy()
+    
         if available_bikes is None:
             service = np.zeros((np.max(self.dict['capacities'] + 1), dep.shape[1]))
             for c in range(np.max(self.dict['capacities']) + 1):
