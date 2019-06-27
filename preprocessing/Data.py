@@ -217,7 +217,7 @@ class Data(object):
         # print(self.miniOD.head(100))
         # li = ['Temps', 'vent', 'temp', 'visi',
         #   'pression', 'Hum']
-        # df[li].fillna(method='ffill')
+        # df [li].fillna(method='ffill')
         # df[li].fillna(method='bfill')
     
 
@@ -239,7 +239,6 @@ class Data(object):
         #print(df['vent_direction'].iloc[-1])
         #pd.DataFrame(columns ={"dia","hora","wday"})
         #print(type(df['datetime']))
-        
         for i in range(length[interval]):
             a=np.array([])
             ts = df['datetime'].iloc[-2-i]
@@ -272,8 +271,8 @@ class Data(object):
                     return r
                 a = np.append(a,f(df['cond_meteo_min'+str(i+1)].iloc[-2-i]))
             #print(a[-1])
-            a = np.append(a,a[14] | a[13] | a[12]|a[22]) #precip #r['pluie'] | r['neige'] | r['averses'] | r['orage']
-            a = np.append(a,a[18]|a[20]) #brr #r['brouillard'] | r['bruine']
+            a = np.append(a, a[14] | a[13] | a[12] | a[22]) #precip #r['pluie'] | r['neige'] | r['averses'] | r['orage']
+            a = np.append(a, a[18] | a[20]) #brr #r['brouillard'] | r['bruine']
             #h
             for h in range(24):
                 a = np.append(a, ts.hour == h)
@@ -281,11 +280,8 @@ class Data(object):
             a = np.append(a,(ts.weekday() == 0) | (ts.weekday() == 4)) #LV
             a = np.append(a,(ts.weekday() == 1) | (ts.weekday() == 2) | (ts.weekday() == 3)) #MMJ
             a = np.append(a,(ts.weekday() == 5) | (ts.weekday() == 6)) #SD
-            #print(a)
             self.miniOD.loc[i] = a
-            #print(self.miniOD.loc[i])
-            #print(self.miniOD)
-        self.miniOD.to_csv("data_updated_forecast1.csv")
+            self.miniOD.to_csv("data_updated_forecast1.csv")
         return self.miniOD
 
 

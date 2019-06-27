@@ -29,7 +29,7 @@ def data(name, unprocesseddata):
             return 0
 
     path = unprocesseddata.trip_path
-    if (not name.__contains__('2017')) or path.__contains__('synthetic'):
+    if not (name.__contains__('2017') ) or path.__contains__('synthetic'):
         r = pd.read_csv(open(path + name), delimiter=unprocesseddata.get_delimiter(), quotechar='"',
                         low_memory=False)
     else:
@@ -99,6 +99,19 @@ def complete(env, df, s=True):
     dfhs[:, 0] = [i for i in range(min_t, max_t, 3600) for _ in range(n_stations)]
     dfhs[:, 1] = np.array(list(stations) * n_h)
     dfhs = pd.DataFrame(dfhs, columns=['UTC timestamp', 'station'])
+    # print("information about df")
+    # print(df)
+    # print(list(df))
+    # print(df.shape)
+    # print(type(df['UTC timestamp'].iloc[0]))
+    # print(type(df['station'].iloc[0]))
+    # print("information about dfhs")
+    # print(dfhs)
+    # print(list(dfhs))
+    # print(dfhs.shape)
+    # print(type(dfhs['UTC timestamp'].iloc[0]))
+    # print(type(dfhs['station'].iloc[0]))
+
     merged = pd.merge(dfhs, df, 'left', on=['UTC timestamp', 'station'])
     merged.fillna(value=0, inplace=True)
     # merged.iloc[:, 2][merged.iloc[:, 2].isnull()] = 0
@@ -455,7 +468,7 @@ def recompute_all_files(system, name, save=True):
 
 if __name__ == '__main__':
     recompute_all_files('Bixi','train')
-    recompute_all_files('Bixi','test')
+    #recompute_all_files('Bixi','test')
     #recompute_all_files('citibike','train')
     #recompute_all_files('citibike','test')
     # recompute_all_files('capitalBS','train')

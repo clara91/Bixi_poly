@@ -21,6 +21,9 @@ class DecisionIntervals(object):
         #self.length = [6, 5, 4, 5, 4]
         self.hours = [0, 9, 11, 15, 19, 22]
         self.length =  [9, 2, 4, 4, 3, 2]
+        # self.hours = [22, 6, 9, 11, 15.5, 19]
+        # #self.length =  [8, 3, 2, 4.5, 3.5, 3]
+        # self.length =  [8, 3, 2, 5, 4, 3]
         self.SL = ServiceLevel(env, mod, arr_vs_dep)
         self.param_beta = beta
 
@@ -498,14 +501,7 @@ if __name__ == '__main__':
     #WH = mod.get_all_factors_database(data)
     #WH.to_csv("data_updated1_database.csv")
     WH = mod.get_factors_forecast(data,time_period)
-    # print(type(WH))
-    # print("shpe 1")
-    # print(WH)
-    # print("shpe 2")
-    # print(WH.shape)
-    # print(WH.head(10))
-    # print(list(WH))
-    # print(WH.shape)
+
     interval = DI.compute_decision_intervals(WH, data, predict=True)
     print(interval)
     # periods = DI.general_min_max(WH, data, True, **{'distrib': 'P'})

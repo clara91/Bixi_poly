@@ -99,15 +99,13 @@ class Environment(object):
                            'OD_2016-09.csv', 'OD_2016-10.csv', 'OD_2016-11.csv'],
                     2017: ['OD_2017-04.csv', 'OD_2017-05.csv', 'OD_2017-06.csv', 'OD_2017-07.csv', 'OD_2017-08.csv',
                            'OD_2017-09.csv', 'OD_2017-10.csv', 'OD_2017-11.csv'],
-                    2018: ['OD_2018-04.csv', 'OD_2018-05.csv', 'OD_2018-06.csv', 'OD_2018-07.csv']
+                    2018: ['OD_2018-04.csv', 'OD_2018-05.csv', 'OD_2018-06.csv', 'OD_2018-07.csv', 'OD_2018-08.csv', 
+                    	   'OD_2018-09.csv', 'OD_2018-10.csv', 'OD_2018-11.csv'],
+                    2019: ['OD_2019-04.csv', 'OD_2019-05.csv', 'OD_2019-06.csv']
                 }
             if self.name.__contains__('test'):
                 return {
-                    2018: ['OD_2018-08.csv', 'OD_2018-09.csv', 'OD_2018-10.csv', 'OD_2018-11.csv']
-                    # 2017: [
-                    #     'OD_2017-06.csv',
-                    #     'OD_2017-07.csv',
-                    # ]
+                    2019: ['OD_2019-04.csv', 'OD_2019-05.csv', 'OD_2019-06.csv']
                 }
         if self.system == 'capitalBS':
             if self.name.__contains__('train'):
@@ -142,7 +140,8 @@ class Environment(object):
             2015: [],
             2016: [],
             2017: [],
-            2018: []
+            2018: [],
+            2019: []
         }
         for y in list(files.keys()):
             if y % 4 != 0:
