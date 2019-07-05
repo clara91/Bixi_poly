@@ -7,7 +7,7 @@ import pandas as pd
 from pandas import DataFrame, Series
 from sklearn.cluster import KMeans
 
-import config
+import code_v1.config as config
 
 os.chdir(config.root_path)
 

@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm, poisson, nbinom, skellam
 
-import config
-from utils.modelUtils import mini, maxi, proba_sum, proba_diff
+import code_v1.config as config
+from code_v1.utils.modelUtils import mini, maxi, proba_sum, proba_diff
 
 
 class ServiceLevel(object):

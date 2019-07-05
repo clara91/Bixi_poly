@@ -11,9 +11,9 @@ from sklearn.tree.tree import DecisionTreeRegressor
 #import sys
 #print(sys.path)
 #sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
-from utils.modelUtils import rmse, rms5e
+from code_v1.utils.modelUtils import rmse, rms5e
 import pandas as pd
-from config import root_path
+from code_v1.config import root_path
 from statsmodels.tsa.arima_model import ARIMA
 
 def loc(self, add_path=''):

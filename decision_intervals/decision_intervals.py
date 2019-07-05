@@ -1,11 +1,13 @@
 
 from ServiceLevel import ServiceLevel
-from utils.modelUtils import *
-from model_station.ModelStations import ModelStations
-from preprocessing.Data import Data
-from preprocessing.Environment import Environment
+from code_v1.utils.modelUtils import *
+from code_v1.model_station.ModelStations import ModelStations
+from code_v1.preprocessing.Data import Data
+from code_v1.preprocessing.Environment import Environment
 import sys
 import operator 
+
+from datetime import datetime
 
 class DecisionIntervals(object):
     """
@@ -501,16 +503,40 @@ if __name__ == '__main__':
     WH = mod.get_factors_forecast(data,time_period)
     #print(WH)
     intervals = DI.compute_decision_intervals(WH, data, predict=True)
+    if os.path.exists(r'C:\Users\cmartins\Documents\intervals.csv'):
+        int_df = pd.read_csv(r'C:\Users\cmartins\Documents\intervals.csv')
+    else:
+        int_df = pd.DataFrame(columns=['datetime', 'time_period', 'min', 'max', 'target'])
+    int_df = int_df.append({'datetime': datetime.now(), 'time_period': time_period, 'min': ','.join([str(x) for x in intervals[0]]),
+        'max': ','.join([str(x) for x in intervals[2]]), 'target': ','.join([str(x) for x in intervals[1]])}, ignore_index=True)
+    int_df.to_csv(r'C:\Users\cmartins\Documents\intervals.csv', index=False)
+
     print("Normal Interval")
     print(intervals)
 
-    ########################################################Compute each hour separately and the intervals are a mean of each interval
-    intervals_per_hour = [tuple(x) for x in np.zeros((3,552),int)]
+    ########################################################  Compute each hour separately and the intervals are a mean of each interval
+    intervals_per_hour = [tuple(x) for x in np.zeros((3, 552), int)]
+    if os.path.exists(r'C:\Users\cmartins\Documents\x.csv'):
+        int_df = pd.read_csv(r'C:\Users\cmartins\Documents\x.csv')
+    else:
+        int_df = pd.DataFrame(columns=['datetime', 'hour', 'min', 'max', 'target'])
+
     for i, row in WH.iterrows():
         x = DI.compute_decision_intervals(WH.iloc[i], data, predict=True)
-        intervals_per_hour = tuple(map(operator.add,intervals_per_hour,x))
-    value = [np.around(x/DI.length[time_period]) for x in intervals_per_hour]
+        intervals_per_hour = tuple(map(operator.add,intervals_per_hour, x))
+        int_df = int_df.append({'datetime': datetime.now(), 'hour': row['Heure'], 'min': ','.join([str(x2) for x2 in x[0]]),
+            'max': ','.join([str(x2) for x2 in x[2]]), 'target': ','.join([str(x2) for x2 in x[1]])}, ignore_index=True)
+    value = [np.around(x / DI.length[time_period]) for x in intervals_per_hour]
+    int_df.to_csv(r'C:\Users\cmartins\Documents\x.csv', index=False)
+
+    if os.path.exists(r'C:\Users\cmartins\Documents\intervals_mean.csv'):
+        int_df = pd.read_csv(r'C:\Users\cmartins\Documents\intervals_mean.csv')
+    else:
+        int_df = pd.DataFrame(columns=['datetime', 'time_period', 'min', 'max', 'target'])
     print("Mean Interval")
     print(value)
+    int_df = int_df.append({'datetime': datetime.now(), 'time_period': time_period, 'min': ','.join([str(x) for x in value[0]]),
+        'max': ','.join([str(x) for x in value[2]]), 'target': ','.join([str(x) for x in value[1]])}, ignore_index=True)
+    int_df.to_csv(r'C:\Users\cmartins\Documents\intervals_mean.csv', index=False)
     
 

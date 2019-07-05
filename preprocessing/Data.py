@@ -1,6 +1,6 @@
-from preprocessing.Station import *
-from preprocessing.Environment import Environment
-import config
+from code_v1.preprocessing.Station import *
+from code_v1.preprocessing.Environment import Environment
+import code_v1.config as config
 from datetime import datetime, timedelta
 from bixi_pkg.db import DB
 import calendar 
@@ -127,9 +127,9 @@ class Data(object):
             return res, m
 
         return res
-    def get_miniOD_database(self,env,hours=[],from_year=None, log=False, mean=False):
+    def get_miniOD_database(self, env, hours=[], from_year=None, log=False, mean=False):
         info = DB("info")
-        df =  pd.DataFrame(info.query_df('select * from weather_actuel'))
+        df =  pd.DataFrame(info.query_df('select * from weather_actuel ORDER BY date DESC LIMIT 10'))
         holliday = pd.read_csv(env.off_days, delimiter=',', quotechar='"')
         holliday = pd.to_datetime(holliday).dt.date
         self.miniOD = pd.DataFrame()

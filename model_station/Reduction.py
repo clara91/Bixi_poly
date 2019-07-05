@@ -7,10 +7,10 @@ from sklearn.cluster import SpectralClustering as SC
 from sklearn.decomposition import PCA, TruncatedSVD, KernelPCA
 from sklearn.mixture import GaussianMixture as GM
 
-from config import root_path
-from preprocessing.Data import Data
-from preprocessing.Station import Stations
-import utils.modelUtils as utils
+from code_v1.config import root_path
+from code_v1.preprocessing.Data import Data
+from code_v1.preprocessing.Station import Stations
+import code_v1.utils.modelUtils as utils
 
 
 def loc(self, add_path=''):

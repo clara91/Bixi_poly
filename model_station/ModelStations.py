@@ -1,11 +1,11 @@
 import time
 
-import config
+import code_v1.config as config
 import numpy as np
-import model_station.Prediction as pr
-import model_station.Reduction as red
-from utils.modelUtils import maxi,mini
-from preprocessing.Data import Data
+import code_v1.model_station.Prediction as pr
+import code_v1.model_station.Reduction as red
+from code_v1.utils.modelUtils import maxi, mini
+from code_v1.preprocessing.Data import Data
 import pandas as pd
 import joblib
 
@@ -13,28 +13,27 @@ import joblib
 class ModelStations(object):
     def __init__(self, env, reduction_method, prediction_method, dim=10, **kwargs):
         self.hparam = {
-            'var':False,
-            'zero_prob':False,
+            'var': False,
+            'zero_prob': False,
             'norm': False,
             'hours': [],
             'load_red': False,
             'log': False,
             'mean': False,
             'decor': False,
-            'red':{},
-            'pred':{},
+            'red': {},
+            'pred': {},
             'second_pred': {
                 'pred': 'linear',
             },
         }
-        self.dim =  dim
+        self.dim = dim
         self.hparam.update(kwargs)
-        #print(reduction_method, prediction_method)
+        # print(reduction_method, prediction_method)
         self.env = env
         self.hours = self.hparam['hours']
         self.load_red = self.hparam['load_red']
-        self.reduce = red.get_reduction(reduction_method)(env, dim=dim,
-                                                                       log=self.hparam['log'], mean=self.hparam['mean'])
+        self.reduce = red.get_reduction(reduction_method)(env, dim=dim, log=self.hparam['log'], mean=self.hparam['mean'])
         # print('reduce dimension',self.reduce.dim)
         self.meanPredictor = pr.get_prediction(prediction_method)(dim=self.reduce.dim, **self.hparam['pred'])
         # self.varPredictor = pr.get_prediction('linear')(dim=len(Data(env).get_stations_col(None)),
@@ -196,7 +195,7 @@ class ModelStations(object):
         return df[col]
     def get_factors_database(self,learn:(Data,pd.DataFrame)):
         if isinstance(learn, Data):
-            df = learn.get_miniOD_database(self.hours)
+            df = learn.get_miniOD_database(hours=self.hours, env=learn.env)
         else:
             df = learn
         col = []

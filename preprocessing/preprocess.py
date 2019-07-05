@@ -1,8 +1,8 @@
 import os
 
-import config
-from preprocessing.Station import Stations
-from preprocessing.Environment import Environment
+import code_v1.config as config
+from code_v1.preprocessing.Station import Stations
+from code_v1.preprocessing.Environment import Environment
 
 # from preprocessing.UnprocessedSyntheticData import UnprocessedSyntheticData
 

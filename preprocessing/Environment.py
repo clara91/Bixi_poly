@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from config import data_path
+from code_v1.config import data_path
 import datetime
 
 class Environment(object):
