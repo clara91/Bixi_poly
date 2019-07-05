@@ -8,9 +8,9 @@ from sklearn.ensemble import RandomForestRegressor as RF
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.svm import SVR
 from sklearn.tree.tree import DecisionTreeRegressor
-import sys
+#import sys
 #print(sys.path)
-sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
+#sys.path.insert(0,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/')
 from utils.modelUtils import rmse, rms5e
 import pandas as pd
 from config import root_path
@@ -175,7 +175,6 @@ class MeanHourPredictor(Prediction):
             # learn = range(int(y1.shape[0] * 1))  # 0.8))
             self.mean.append(m)
 
-
 class ARIMAPredictor(Prediction):
     def __init__(self, dim=1, add_path='', horizon=-1, *args, **kwargs):
         super(ARIMAPredictor, self).__init__()
@@ -250,7 +249,6 @@ class ARIMAPredictor(Prediction):
     def reset(self):
         del self.models
 
-
 class LinearPredictor(Prediction):
     def __init__(self, dim=1, add_path='', horizon=-1, *args, **kwargs):
         super(LinearPredictor, self).__init__()
@@ -260,7 +258,10 @@ class LinearPredictor(Prediction):
         self.lr = LinearRegression(n_jobs=-1)
 
     def predict(self, x, y=None):
-        return self.lr.predict(x.to_numpy())
+        x = x.to_numpy()
+        if x.ndim == 1:
+            x = np.reshape(x,(1,-1))
+        return self.lr.predict(x)
 
     def train(self, x, y, **kwargs):
         self.lr.fit(x.to_numpy(), y)
@@ -282,7 +283,6 @@ class LinearPredictor(Prediction):
 
     def reset(self):
         del self.lr
-
 
 class RidgePredictor(Prediction):
     def __init__(self, dim=1, add_path='', horizon=-1, *args, **kwargs):
@@ -319,7 +319,6 @@ class RidgePredictor(Prediction):
     def reset(self):
         del self.lr
 
-
 class LassoPredictor(Prediction):
     def __init__(self, dim=1, add_path='', horizon=-1, *args, **kwargs):
         super(LassoPredictor, self).__init__()
@@ -354,7 +353,6 @@ class LassoPredictor(Prediction):
 
     def reset(self):
         del self.lr
-
 
 class SvrLinear(Prediction):
     def __init__(self, dim=1, add_path='', horizon=-1, *args, **kwargs):
@@ -403,20 +401,17 @@ class SvrLinear(Prediction):
     def reset(self):
         del self.svr
 
-
 class SvrPoly(SvrLinear):
     def __init__(self, dim=1, add_path='', horizon=-1, *args, **kwargs):
         hparam = kwargs
         hparam['kernel'] = 'poly'
         super(SvrPoly, self).__init__(dim=1, add_path='', horizon=-1, *args, **kwargs)
 
-
 class SvrRbf(SvrLinear):
     def __init__(self, dim=1, add_path='', horizon=-1, *args, **kwargs):
         hparam = kwargs
         hparam['kernel'] = 'rbf'
         super(SvrRbf, self).__init__(dim=1, add_path='', horizon=-1, *args, **kwargs)
-
 
 class TripleGbt(Prediction):
     def __init__(self, horizon=1, dim=1, add_path='', *args, **kwargs):
@@ -565,7 +560,6 @@ class TripleGbt(Prediction):
         del self.model_GBT3
         del self.learning_days
 
-
 class DoubleGbt(Prediction):
     def __init__(self, horizon=1, dim=1, add_path='', *args, **kwargs):
         super(DoubleGbt, self).__init__()
@@ -662,7 +656,6 @@ class DoubleGbt(Prediction):
         del self.model_GBT1
         del self.model_GBT2
 
-
 class SimpleGbt(Prediction):
     def __init__(self, horizon=1, dim=1, add_path='', *args, **kwargs):
         super(SimpleGbt, self).__init__()
@@ -683,12 +676,14 @@ class SimpleGbt(Prediction):
         #     self.model_GBT1.append(
         #         GBR(n_estimators=self.hparam['n_estimators'], loss=self.hparam['loss'], subsample=self.hparam['subsample'],
         #             learning_rate=self.hparam['lr'], max_depth=self.hparam['max_depth']))
-
     def predict(self, x, y=None):
         pred = np.zeros(shape=(self.dim, x.shape[0]))
         for d in range(self.dim):
-            if isinstance(x,pd.DataFrame):
+            if isinstance(x,pd.DataFrame) or isinstance(x,pd.Series):
                 x= x.to_numpy()
+            if x.ndim ==1:
+                x= np.reshape(x,(1,-1))
+                #print(x.shape)
             pred[d] = self.model_GBT1[d].predict(x)
         return pred.transpose()
 
@@ -748,7 +743,6 @@ class SimpleGbt(Prediction):
 
     def reset(self):
         del self.model_GBT1
-
 
 class MLP(Prediction):
     def __init__(self, dim=10, horizon=-1, *args, **kwargs):
@@ -860,7 +854,6 @@ class MLP(Prediction):
 
     def reset(self):
         del self.model
-
 
 class MLP_var(MLP):
     def __init__(self, dim=10, horizon=-1, *args, **kwargs):
@@ -1090,7 +1083,6 @@ class MLP2(MLP):
     # def reset(self):
     #     del self.model
 
-
 class MLP_kaggle(Prediction):
     def __init__(self, dim=10, horizon=-1, **kwargs):
         super(MLP_kaggle, self).__init__()
@@ -1203,7 +1195,6 @@ class MLP_kaggle(Prediction):
 
     def reset(self):
         del self.model
-
 
 class LSTMPredictor(Prediction):
     def __init__(self, dim=10, horizon=-1, **kwargs):
@@ -1333,7 +1324,6 @@ class LSTMPredictor(Prediction):
     def reset(self):
         del self.model
 
-
 class RandForest(Prediction):
     def __init__(self, horizon=1, dim=1, add_path='', *args, **kwargs):
         super(RandForest, self).__init__()
@@ -1351,6 +1341,8 @@ class RandForest(Prediction):
 
     # train the prediction model
     def train(self, x, y, **kwargs):
+        #x =WH
+        #Y = learn2
         hparam = {}
         hparam.update(self.hparam)
         hparam.update(**kwargs)
@@ -1381,7 +1373,6 @@ class RandForest(Prediction):
         model_file_save = open(self.location, 'wb')
         pickle.dump(self, model_file_save)
         model_file_save.close()
-
 
 class DecisionTree(Prediction):
     def __init__(self, horizon=1, dim=1, add_path='', *args, **kwargs):

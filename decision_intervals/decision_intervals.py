@@ -5,6 +5,7 @@ from model_station.ModelStations import ModelStations
 from preprocessing.Data import Data
 from preprocessing.Environment import Environment
 import sys
+import operator 
 
 class DecisionIntervals(object):
     """
@@ -19,11 +20,11 @@ class DecisionIntervals(object):
         """
         #self.hours = [0, 6, 11, 15, 20]
         #self.length = [6, 5, 4, 5, 4]
-        self.hours = [0, 9, 11, 15, 19, 22]
-        self.length =  [9, 2, 4, 4, 3, 2]
-        # self.hours = [22, 6, 9, 11, 15.5, 19]
+        #self.hours = [0, 9, 11, 15, 19, 22]
+        #self.length =  [9, 2, 4, 4, 3, 2]
+        self.hours = [22, 6, 9, 11, 15.5, 19]
         # #self.length =  [8, 3, 2, 4.5, 3.5, 3]
-        # self.length =  [8, 3, 2, 5, 4, 3]
+        self.length =  [8, 3, 2, 5, 4, 3]
         self.SL = ServiceLevel(env, mod, arr_vs_dep)
         self.param_beta = beta
 
@@ -491,47 +492,25 @@ if __name__ == '__main__':
     mod.load()
     DI = DecisionIntervals(env, mod, 0.45, 0.6) #alpha and beta
 
-    #DI.load_intervals(data,'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/resultats/stations_bixi_min_max_target.csv','')
-    # r = 6 + 48 + 24 + 7 * 24 + 24 - 14
-    r = 0 #?
-    # valid = data.get_partialdata_per(0, 0.8)
+
     env = Environment('Bixi', 'test')
     data = Data(env)
-    #WH = mod.get_all_factors(data) #eu comentei
-    #WH = mod.get_all_factors_database(data)
-    #WH.to_csv("data_updated1_database.csv")
+
+    ########################################################Run once and compute the intervals according to the forecast of the next hours
+
     WH = mod.get_factors_forecast(data,time_period)
+    #print(WH)
+    intervals = DI.compute_decision_intervals(WH, data, predict=True)
+    print("Normal Interval")
+    print(intervals)
 
-    interval = DI.compute_decision_intervals(WH, data, predict=True)
-    print(interval)
-    # periods = DI.general_min_max(WH, data, True, **{'distrib': 'P'})
-    # print(periods)
-    # print(list(periods))
-    # print(np.shape(interval))
-
+    ########################################################Compute each hour separately and the intervals are a mean of each interval
+    intervals_per_hour = [tuple(x) for x in np.zeros((3,552),int)]
+    for i, row in WH.iterrows():
+        x = DI.compute_decision_intervals(WH.iloc[i], data, predict=True)
+        intervals_per_hour = tuple(map(operator.add,intervals_per_hour,x))
+    value = [np.around(x/DI.length[time_period]) for x in intervals_per_hour]
+    print("Mean Interval")
+    print(value)
     
-    
-    #print("Informações sobre load_intervals")
-    #print(teste)
-    #teste = DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', '') # informações do intervalo 
-    #get_mini = data.get_miniOD([]) #informações do tempo + chega e saida de cada estação por hora 
- 
-    #print(DI.eval_worst_case(data,'P',teste, get_mini ,arr_dep='dep'))
-    #print(DI.eval_worst_case(data,'P',DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''), data.get_miniOD([]),arr_dep='arr'))
-    #print(DI.eval_target(data,'P',DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''), data.get_miniOD([])))
-    ##print(DI.eval_worst_case(data,'P',DI.load_intervals(data, 'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/resultats/stations_bixi_min_max_target.csv',''), data.get_miniOD([])))
 
-    
-    #print(DI.mean_alerts(data, DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', ''),
-    #               data.get_miniOD([])))
-    ##print(DI.mean_alerts(data, DI.load_intervals(data, 'C:/Users/Clara Martins/Documents/Doutorado/Pierre Code/Bixi_poly/resultats/stations_bixi_min_max_target.csv', ''),
-    ##               data.get_miniOD([])))
-
-    # WH = WH[WH['Annee']==2015]
-    # DI.general_min_max(WH, data, True, **{'distrib': 'ZI'})
-    # print(DI.sum_int(data, DI.load_intervals(data, data.env.decision_intervals[:-4] + 'P' + '.csv', '')))
-    # print(DI.sum_int(data, DI.load_intervals(data, 'D:/maitrise/code/resultats/stations_bixi_min_max_target.csv', '')))
-
-    # DI.general_min_max(WH, data, True, **{'distrib': 'P'})
-    # DI.general_min_max(WH, data, True, **{'distrib': 'NB'})
-    # DI.load_intervals(data)

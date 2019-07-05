@@ -705,7 +705,7 @@ def get_predict(data_train, data_test, pred_algos, red_algos,red_dim,load=True, 
     
     for model in mods.models:
         model.mod.load()
-        predict = model.mod.predict(data_test,database=True)
+        predict = model.mod.predict(data_test)
         print("Informações de predict")
         print(type(predict))
         #print(list(predict))

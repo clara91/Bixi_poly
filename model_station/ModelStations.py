@@ -153,10 +153,16 @@ class ModelStations(object):
         #print("aqui")
         #print(df.head())
         col = []
-        for i in df.columns.values:
-            for j in config.learning_var:
-                if j==i or j == i[:-1] or j == i[:-2]:
-                    col.append(i)
+        if isinstance(df,pd.DataFrame):
+            for i in df.columns.values:
+                for j in config.learning_var:
+                    if j==i or j == i[:-1] or j == i[:-2]:
+                        col.append(i)
+        else:
+            for i in df.index:
+                for j in config.learning_var:
+                    if j==i or j == i[:-1] or j == i[:-2]:
+                        col.append(i)
         # if 'Date/Heure' in col:
         #     col.remove('Date/Heure')
         # for i in col:
@@ -203,16 +209,21 @@ class ModelStations(object):
         #print(type(df))
 
     def get_var_factors(self, learn:[Data,pd.DataFrame]):
-
         if isinstance(learn, Data):
             df = learn.get_miniOD(self.hours)
         else:
             df = learn
         col = []
-        for i in df.columns.values:
-            for j in config.learning_var:
-                if j == i or j == i[:-1] or j == i[:-2]:
-                    col.append(i)
+        if isinstance(df,pd.DataFrame):
+            for i in df.columns.values:
+                for j in config.learning_var:
+                    if j == i or j == i[:-1] or j == i[:-2]:
+                        col.append(i)
+        else:
+            for i in df.index:
+                for j in config.learning_var:
+                    if j == i or j == i[:-1] or j == i[:-2]:
+                        col.append(i)
         col = np.unique(col)
         return df[col]
     def get_var_factors_database(self, learn:[Data,pd.DataFrame]):

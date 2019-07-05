@@ -33,14 +33,14 @@ class ServiceLevel(object):
         :return: None
         """
         try:
-            self.dict['cols'] = self.mod.reduce.preselect 
+            self.dict['cols'] = self.mod.reduce.preselect
         except AttributeError:
             self.dict['cols'] = self.mod.models[0].reduce.preselect
         self.dict['arr_cols'] = data.get_arr_cols(None)
         self.dict['stations'] = data.get_stations_ids(None)
         self.dict['capacities'] = data.get_stations_capacities(None).to_numpy().flatten()
         if predict:
-            self.mean = pd.DataFrame(self.mod.predict(x = WT), columns=self.dict['cols'])[
+            self.mean = pd.DataFrame(self.mod.predict(WT), columns=self.dict['cols'])[
                 self.dict['cols']].to_numpy()
         else:
             if config.learning_var.__contains__('Heure'):
@@ -171,7 +171,6 @@ class ServiceLevel(object):
         cum_arr = cum_mean[self.dict['arr_cols']]
         cum_dep = cum_mean.drop(self.dict['arr_cols'], axis=1)
         # self.dict['cum_mean'] = cum_mean[list(map(str, self.dict['stations']))].to_numpy()
-    
         if available_bikes is None:
             service = np.zeros((np.max(self.dict['capacities'] + 1), dep.shape[1]))
             for c in range(np.max(self.dict['capacities']) + 1):
@@ -203,7 +202,7 @@ class ServiceLevel(object):
         mat = np.zeros((self.mean.shape[0], self.mean.shape[1], self.N))
         if distrib == 'NB':
             p = self.mean / self.var
-            p = mini(p, 0.999) 
+            p = mini(p, 0.999)
             r = maxi(1, (self.mean * p / (1 - p)))
             r = mini(150, r)
             n = np.array(list(map(int, r.flatten()))).reshape(r.shape)
