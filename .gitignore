@@ -1,6 +1,7 @@
 config.py
-model_station/clustering/
-model_station/dim_red/
-model_station/prediction_models/
+model_station/clustering/*
+model_station/dim_red/*
+model_station/prediction_models/*
 */__pycache__
 *.pyc
+*.csv
